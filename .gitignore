@@ -27,3 +27,6 @@ bower_components
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# compiled Sass files
+public/css/main.css
