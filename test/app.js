@@ -27,22 +27,6 @@ describe('GET /signup', () => {
   });
 });
 
-describe('GET /api', () => {
-  it('should return 200 OK', (done) => {
-    request(app)
-      .get('/api')
-      .expect(200, done);
-  });
-});
-
-describe('GET /contact', () => {
-  it('should return 200 OK', (done) => {
-    request(app)
-      .get('/contact')
-      .expect(200, done);
-  });
-});
-
 describe('GET /random-url', () => {
   it('should return 404', (done) => {
     request(app)
