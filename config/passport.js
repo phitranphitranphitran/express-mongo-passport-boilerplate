@@ -116,11 +116,14 @@ passport.use(new GitHubStrategy({
   callbackURL: '/auth/github/callback',
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
+  // a user is already logged in
   if (req.user) {
     User.findOne({ github: profile.id }, (err, existingUser) => {
+      // github account already exists
       if (existingUser) {
         req.flash('errors', { msg: 'There is already a GitHub account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
         done(err);
+      // link existing account to github account
       } else {
         User.findById(req.user.id, (err, user) => {
           user.github = profile.id;

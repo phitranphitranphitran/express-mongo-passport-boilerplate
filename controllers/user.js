@@ -36,7 +36,9 @@ exports.postLogin = (req, res, next) => {
   }
 
   passport.authenticate('local', (err, user, info) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     if (!user) {
       req.flash('errors', info);
       return res.redirect('/login');
@@ -136,12 +138,11 @@ exports.postUpdateProfile = (req, res, next) => {
   }
 
   User.findById(req.user.id, (err, user) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     user.email = req.body.email || '';
     user.profile.name = req.body.name || '';
-    user.profile.gender = req.body.gender || '';
-    user.profile.location = req.body.location || '';
-    user.profile.website = req.body.website || '';
     user.save((err) => {
       if (err) {
         if (err.code === 11000) {
@@ -151,7 +152,7 @@ exports.postUpdateProfile = (req, res, next) => {
         return next(err);
       }
       req.flash('success', { msg: 'Profile information has been updated.' });
-      res.redirect('/account');
+      return res.redirect('/account');
     });
   });
 };
@@ -172,12 +173,16 @@ exports.postUpdatePassword = (req, res, next) => {
   }
 
   User.findById(req.user.id, (err, user) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     user.password = req.body.password;
     user.save((err) => {
-      if (err) { return next(err); }
+      if (err) {
+        return next(err);
+      }
       req.flash('success', { msg: 'Password has been changed.' });
-      res.redirect('/account');
+      return res.redirect('/account');
     });
   });
 };
@@ -188,10 +193,12 @@ exports.postUpdatePassword = (req, res, next) => {
  */
 exports.postDeleteAccount = (req, res, next) => {
   User.remove({ _id: req.user.id }, (err) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     req.logout();
     req.flash('info', { msg: 'Your account has been deleted.' });
-    res.redirect('/');
+    return res.redirect('/');
   });
 };
 
@@ -202,13 +209,17 @@ exports.postDeleteAccount = (req, res, next) => {
 exports.getOauthUnlink = (req, res, next) => {
   const provider = req.params.provider;
   User.findById(req.user.id, (err, user) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     user[provider] = undefined;
     user.tokens = user.tokens.filter(token => token.kind !== provider);
     user.save((err) => {
-      if (err) { return next(err); }
+      if (err) {
+        return next(err);
+      }
       req.flash('info', { msg: `${provider} account has been unlinked.` });
-      res.redirect('/account');
+      return res.redirect('/account');
     });
   });
 };

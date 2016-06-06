@@ -8,9 +8,7 @@ const compression = require('compression');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
-const errorHandler = require('errorhandler');
 const lusca = require('lusca');
-const dotenv = require('dotenv');
 const MongoStore = require('connect-mongo')(session);
 const flash = require('express-flash');
 const path = require('path');
@@ -22,7 +20,7 @@ const sass = require('node-sass-middleware');
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.load({ path: '.env.example' });
+require("dotenv").config();
 
 /**
  * Controllers (route handlers).
@@ -43,16 +41,24 @@ const app = express();
 /**
  * Connect to MongoDB.
  */
-mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI);
-mongoose.connection.on('error', () => {
-  console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
-  process.exit(1);
+mongoose.connect(process.env.MONGO_URI, {
+	server: {
+		socketOptions: { keepAlive: 1 }
+	}
+});
+mongoose.connection.on("error", (err) => {
+  console.log("MongoDB connection error ", err);
+});
+mongoose.connection.once("open", () => {
+	console.log("MongoDB connection successful "
+		+ (app.get("env") === "development" ? process.env.MONGO_URI : ""));
 });
 
 /**
  * Express configuration.
  */
 app.set('port', process.env.PORT || 3000);
+app.set("env", process.env.NODE_ENV || "production");
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 app.use(compression());
@@ -69,7 +75,7 @@ app.use(session({
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
   store: new MongoStore({
-    url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,
+    url: process.env.MONGO_URI,
     autoReconnect: true
   })
 }));
@@ -113,27 +119,46 @@ app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userControl
 /**
  * OAuth authentication routes. (Sign in)
  */
-app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_location'] }));
+app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
+  res.redirect(req.session.returnTo || '/account');
 });
 app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
+  res.redirect(req.session.returnTo || '/account');
 });
 app.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
 app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
+  res.redirect(req.session.returnTo || '/account');
 });
 app.get('/auth/twitter', passport.authenticate('twitter'));
 app.get('/auth/twitter/callback', passport.authenticate('twitter', { failureRedirect: '/login' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/');
+  res.redirect(req.session.returnTo || '/account');
 });
 
 /**
- * Error Handler.
+ * Error Handlers
  */
-app.use(errorHandler());
+app.use((req, res, next) => {
+  var err = new Error("Not Found");
+  err.status = 404;
+  next(err);
+});
+app.use((err, req, res, next) => {
+  // console.error(err);
+  if (!err.hasOwnProperty("status")) {
+    err.status = 500;
+  }
+  if (app.get("env") === "production") {
+    // no stacktraces leaked to user in production
+    err.stack = null;
+  }
+  res.status(err.status);
+  res.render("error", {
+    message: err.message,
+    error: err
+  });
+});
 
 /**
  * Start Express server.

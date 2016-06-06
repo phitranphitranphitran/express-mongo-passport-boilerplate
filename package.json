@@ -6,7 +6,8 @@
     "url": "https://github.com/sahat/hackathon-starter.git"
   },
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "nodemon server.js",
+    "debug": "node-inspector server.js | nodemon --debug server.js",
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
@@ -18,7 +19,6 @@
     "compression": "^1.6.2",
     "connect-mongo": "^1.1.0",
     "dotenv": "^2.0.0",
-    "errorhandler": "^1.4.3",
     "express": "^4.13.4",
     "express-flash": "^0.0.2",
     "express-session": "^1.13.0",
