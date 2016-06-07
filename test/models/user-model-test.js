@@ -2,16 +2,18 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const User = require("../../app/models/User");
+const User = require("../../app/models/user-model");
 
 describe("User Model", () => {
   it("should create a new user", (done) => {
     const user = new User({
+      profile: { name: "MrTest" },
       email: "test@gmail.com",
       password: "password"
     });
-    user.save((err) => {
+    user.save((err, user) => {
       expect(err).to.be.null;
+      expect(user.profile.name).to.equal("MrTest");
       expect(user.email).to.equal("test@gmail.com");
       expect(user).to.have.property("createdAt");
       expect(user).to.have.property("updatedAt");
@@ -21,6 +23,7 @@ describe("User Model", () => {
 
   it("should not create a user with the unique email", (done) => {
     const user = new User({
+      profile: { name: "MrTest" },
       email: "test@gmail.com",
       password: "password"
     });
@@ -45,4 +48,18 @@ describe("User Model", () => {
       done();
     });
   });
+
+  it("won't allow users without names", (done) => {
+    const user = new User({
+      email: "test2@gmail.com",
+      password: "password"
+    });
+    user.save((err) => {
+      expect(err).to.be.defined;
+      done();
+    });
+  });
+  // compare password works
+  // hashes Passwords
+  // makes gravatars
 });

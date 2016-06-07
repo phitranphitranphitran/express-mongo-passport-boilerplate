@@ -7,7 +7,7 @@ const TwitterStrategy = require("passport-twitter").Strategy;
 const GitHubStrategy = require("passport-github").Strategy;
 const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 
-const User = require("../models/User");
+const User = require("../models/user-model");
 
 passport.serializeUser((user, done) => {
   done(null, user.id);

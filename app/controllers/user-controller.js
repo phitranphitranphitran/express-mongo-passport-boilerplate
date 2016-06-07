@@ -1,7 +1,7 @@
 "use strict";
 
 const passport = require("passport");
-const User = require("../models/User");
+const User = require("../models/user-model");
 
 /**
  * GET /login

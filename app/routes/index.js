@@ -1,7 +1,7 @@
 "use strict";
 
 const router = require("express").Router();
-const userController = require("../controllers/user");
+const userController = require("../controllers/user-controller");
 const passportConfig = require("../config/passport");
 const accountRoutes = require("./account");
 const authRoutes = require("./auth");
