@@ -100,9 +100,7 @@ exports.postSignup = (req, res, next) => {
     user.save((err) => {
       if (err) { return next(err); }
       req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
+        if (err) { return next(err); }
         res.redirect("/");
       });
     });
@@ -126,31 +124,26 @@ exports.getAccount = (req, res) => {
 exports.postUpdateProfile = (req, res, next) => {
   req.assert("email", "Please enter a valid email address.").isEmail();
   req.sanitize("email").normalizeEmail({ remove_dots: false });
-
   const errors = req.validationErrors();
-
   if (errors) {
     req.flash("errors", errors);
     return res.redirect("/account");
   }
 
-  User.findById(req.user.id, (err, user) => {
+  const user = req.user;
+  user.email = req.body.email || user.email;
+  user.profile.name = req.body.name || user.profile.name;
+  user.save((err) => {
     if (err) {
+      // error code 11000 thrown when email is not unique
+      if (err.code === 11000) {
+        req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
+        return res.redirect("/account");
+      }
       return next(err);
     }
-    user.email = req.body.email || "";
-    user.profile.name = req.body.name || "";
-    user.save((err) => {
-      if (err) {
-        if (err.code === 11000) {
-          req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
-          return res.redirect("/account");
-        }
-        return next(err);
-      }
-      req.flash("success", { msg: "Profile information has been updated." });
-      return res.redirect("/account");
-    });
+    req.flash("success", { msg: "Profile information has been updated." });
+    return res.redirect("/account");
   });
 };
 
@@ -167,20 +160,18 @@ exports.postUpdatePassword = (req, res, next) => {
     return res.redirect("/account");
   }
 
-  User.findById(req.user.id, (err, user) => {
+  const user = req.user;
+  user.comparePassword(req.body.currentPassword, (err, isMatch) => {
     if (err) { return next(err); }
-    user.comparePassword(req.body.currentPassword, (err, isMatch) => {
+    if (!isMatch) {
+      req.flash("errors", { msg: "Current password does not match" });
+      return res.redirect("/account");
+    }
+    user.password = req.body.newPassword;
+    user.save((err) => {
       if (err) { return next(err); }
-      if (!isMatch) {
-        req.flash("errors", { msg: "Current password does not match" });
-        return res.redirect("/account");
-      }
-      user.password = req.body.newPassword;
-      user.save((err) => {
-        if (err) { return next(err); }
-        req.flash("success", { msg: "Password has been changed." });
-        return res.redirect("/account");
-      });
+      req.flash("success", { msg: "Password has been changed." });
+      return res.redirect("/account");
     });
   });
 };
@@ -191,9 +182,7 @@ exports.postUpdatePassword = (req, res, next) => {
  */
 exports.postDeleteAccount = (req, res, next) => {
   User.remove({ _id: req.user.id }, (err) => {
-    if (err) {
-      return next(err);
-    }
+    if (err) { return next(err); }
     req.logout();
     req.flash("info", { msg: "Your account has been deleted." });
     return res.redirect("/");
@@ -206,18 +195,12 @@ exports.postDeleteAccount = (req, res, next) => {
  */
 exports.getOauthUnlink = (req, res, next) => {
   const provider = req.params.provider;
-  User.findById(req.user.id, (err, user) => {
-    if (err) {
-      return next(err);
-    }
-    user[provider] = undefined;
-    user.tokens = user.tokens.filter(token => token.kind !== provider);
-    user.save((err) => {
-      if (err) {
-        return next(err);
-      }
-      req.flash("info", { msg: `${provider} account has been unlinked.` });
-      return res.redirect("/account");
-    });
+  const user = req.user;
+  user[provider] = undefined;
+  user.tokens = user.tokens.filter(token => token.kind !== provider);
+  user.save((err) => {
+    if (err) { return next(err); }
+    req.flash("info", { msg: `${provider} account has been unlinked.` });
+    return res.redirect("/account");
   });
 };
