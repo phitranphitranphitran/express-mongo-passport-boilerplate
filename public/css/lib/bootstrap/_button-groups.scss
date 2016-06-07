@@ -33,7 +33,7 @@
 
 // Optional: Group multiple button groups together for a toolbar
 .btn-toolbar {
-  margin-left: -5px; // Offset the first child's margin
+  margin-left: -5px; // Offset the first child"s margin
   @include clearfix;
 
   .btn,
@@ -59,7 +59,7 @@
     @include border-right-radius(0);
   }
 }
-// Need .dropdown-toggle since :last-child doesn't apply given a .dropdown-menu immediately after it
+// Need .dropdown-toggle since :last-child doesn"t apply given a .dropdown-menu immediately after it
 .btn-group > .btn:last-child:not(:first-child),
 .btn-group > .dropdown-toggle:not(:first-child) {
   @include border-left-radius(0);
@@ -82,7 +82,7 @@
   @include border-left-radius(0);
 }
 
-// On active and open, don't show outline
+// On active and open, don"t show outline
 .btn-group .dropdown-toggle:active,
 .btn-group.open .dropdown-toggle {
   outline: 0;
@@ -221,7 +221,7 @@
 
 // Checkbox and radio options
 //
-// In order to support the browser's form validation feedback, powered by the
+// In order to support the browser"s form validation feedback, powered by the
 // `required` attribute, we have to "hide" the inputs via `clip`. We cannot use
 // `display: none;` or `visibility: hidden;` as that also hides the popover.
 // Simply visually hiding the inputs via `opacity` would leave them clickable in

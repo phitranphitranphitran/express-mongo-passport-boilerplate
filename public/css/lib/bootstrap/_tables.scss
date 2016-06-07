@@ -155,16 +155,16 @@ table {
 // inheritance to nested tables.
 
 // Generate the contextual variants
-@include table-row-variant('active', $table-bg-active);
-@include table-row-variant('success', $state-success-bg);
-@include table-row-variant('info', $state-info-bg);
-@include table-row-variant('warning', $state-warning-bg);
-@include table-row-variant('danger', $state-danger-bg);
+@include table-row-variant("active", $table-bg-active);
+@include table-row-variant("success", $state-success-bg);
+@include table-row-variant("info", $state-info-bg);
+@include table-row-variant("warning", $state-warning-bg);
+@include table-row-variant("danger", $state-danger-bg);
 
 
 // Responsive tables
 //
-// Wrap your tables in `.table-responsive` and we'll make them mobile friendly
+// Wrap your tables in `.table-responsive` and we"ll make them mobile friendly
 // by enabling horizontal scrolling. Only applies <768px. Everything above that
 // will display normally.
 
@@ -183,7 +183,7 @@ table {
     > .table {
       margin-bottom: 0;
 
-      // Ensure the content doesn't wrap
+      // Ensure the content doesn"t wrap
       > thead,
       > tbody,
       > tfoot {
@@ -216,7 +216,7 @@ table {
         }
       }
 
-      // Only nuke the last row's bottom-border in `tbody` and `tfoot` since
+      // Only nuke the last row"s bottom-border in `tbody` and `tfoot` since
       // chances are there will be only one `tr` in a `thead` and that would
       // remove the border altogether.
       > tbody,

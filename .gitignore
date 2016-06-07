@@ -28,5 +28,12 @@ bower_components
 .DS_Store
 Thumbs.db
 
+# CSS maps
+*.css.map
+
+# minified files
+*.min.js
+*.min.css
+
 # compiled Sass files
 public/css/main.css

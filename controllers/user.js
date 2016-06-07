@@ -1,8 +1,7 @@
 "use strict";
 
-const crypto = require('crypto');
-const passport = require('passport');
-const User = require('../models/User');
+const passport = require("passport");
+const User = require("../models/User");
 
 /**
  * GET /login
@@ -10,10 +9,10 @@ const User = require('../models/User');
  */
 exports.getLogin = (req, res) => {
   if (req.user) {
-    return res.redirect('/account');
+    return res.redirect("/account");
   }
-  res.render('account/login', {
-    title: 'Login'
+  res.render("account/login", {
+    title: "Login"
   });
 };
 
@@ -22,29 +21,29 @@ exports.getLogin = (req, res) => {
  * Sign in using email and password.
  */
 exports.postLogin = (req, res, next) => {
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('password', 'Password cannot be blank').notEmpty();
-  req.sanitize('email').normalizeEmail({ remove_dots: false });
+  req.assert("email", "Email is not valid").isEmail();
+  req.assert("password", "Password cannot be blank").notEmpty();
+  req.sanitize("email").normalizeEmail({ remove_dots: false });
 
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
-    return res.redirect('/login');
+    req.flash("errors", errors);
+    return res.redirect("/login");
   }
 
-  passport.authenticate('local', (err, user, info) => {
+  passport.authenticate("local", (err, user, info) => {
     if (err) {
       return next(err);
     }
     if (!user) {
-      req.flash('errors', info);
-      return res.redirect('/login');
+      req.flash("errors", info);
+      return res.redirect("/login");
     }
     req.logIn(user, (err) => {
       if (err) { return next(err); }
-      req.flash('success', { msg: 'Success! You are logged in.' });
-      res.redirect(req.session.returnTo || '/');
+      req.flash("success", { msg: "Success! You are logged in." });
+      res.redirect(req.session.returnTo || "/");
     });
   })(req, res, next);
 };
@@ -55,7 +54,7 @@ exports.postLogin = (req, res, next) => {
  */
 exports.logout = (req, res) => {
   req.logout();
-  res.redirect('/');
+  res.redirect("/");
 };
 
 /**
@@ -64,10 +63,10 @@ exports.logout = (req, res) => {
  */
 exports.getSignup = (req, res) => {
   if (req.user) {
-    return res.redirect('/');
+    return res.redirect("/");
   }
-  res.render('account/signup', {
-    title: 'Create Account'
+  res.render("account/signup", {
+    title: "Create Account"
   });
 };
 
@@ -76,16 +75,16 @@ exports.getSignup = (req, res) => {
  * Create a new local account.
  */
 exports.postSignup = (req, res, next) => {
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('password', 'Password must be at least 4 characters long').len(4);
-  req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
-  req.sanitize('email').normalizeEmail({ remove_dots: false });
+  req.assert("email", "Email is not valid").isEmail();
+  req.assert("password", "Password must be at least 4 characters long").len(4);
+  req.assert("confirmPassword", "Passwords do not match").equals(req.body.password);
+  req.sanitize("email").normalizeEmail({ remove_dots: false });
 
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
-    return res.redirect('/signup');
+    req.flash("errors", errors);
+    return res.redirect("/signup");
   }
 
   const user = new User({
@@ -95,8 +94,8 @@ exports.postSignup = (req, res, next) => {
 
   User.findOne({ email: req.body.email }, (err, existingUser) => {
     if (existingUser) {
-      req.flash('errors', { msg: 'Account with that email address already exists.' });
-      return res.redirect('/signup');
+      req.flash("errors", { msg: "Account with that email address already exists." });
+      return res.redirect("/signup");
     }
     user.save((err) => {
       if (err) { return next(err); }
@@ -104,7 +103,7 @@ exports.postSignup = (req, res, next) => {
         if (err) {
           return next(err);
         }
-        res.redirect('/');
+        res.redirect("/");
       });
     });
   });
@@ -115,8 +114,8 @@ exports.postSignup = (req, res, next) => {
  * Profile page.
  */
 exports.getAccount = (req, res) => {
-  res.render('account/profile', {
-    title: 'Account Management'
+  res.render("account/profile", {
+    title: "Account Management"
   });
 };
 
@@ -125,32 +124,32 @@ exports.getAccount = (req, res) => {
  * Update profile information.
  */
 exports.postUpdateProfile = (req, res, next) => {
-  req.assert('email', 'Please enter a valid email address.').isEmail();
-  req.sanitize('email').normalizeEmail({ remove_dots: false });
+  req.assert("email", "Please enter a valid email address.").isEmail();
+  req.sanitize("email").normalizeEmail({ remove_dots: false });
 
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
-    return res.redirect('/account');
+    req.flash("errors", errors);
+    return res.redirect("/account");
   }
 
   User.findById(req.user.id, (err, user) => {
     if (err) {
       return next(err);
     }
-    user.email = req.body.email || '';
-    user.profile.name = req.body.name || '';
+    user.email = req.body.email || "";
+    user.profile.name = req.body.name || "";
     user.save((err) => {
       if (err) {
         if (err.code === 11000) {
-          req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
-          return res.redirect('/account');
+          req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
+          return res.redirect("/account");
         }
         return next(err);
       }
-      req.flash('success', { msg: 'Profile information has been updated.' });
-      return res.redirect('/account');
+      req.flash("success", { msg: "Profile information has been updated." });
+      return res.redirect("/account");
     });
   });
 };
@@ -160,14 +159,14 @@ exports.postUpdateProfile = (req, res, next) => {
  * Update current password.
  */
 exports.postUpdatePassword = (req, res, next) => {
-  req.assert('password', 'Password must be at least 4 characters long').len(4);
-  req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
+  req.assert("password", "Password must be at least 4 characters long").len(4);
+  req.assert("confirmPassword", "Passwords do not match").equals(req.body.password);
 
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
-    return res.redirect('/account');
+    req.flash("errors", errors);
+    return res.redirect("/account");
   }
 
   User.findById(req.user.id, (err, user) => {
@@ -179,8 +178,8 @@ exports.postUpdatePassword = (req, res, next) => {
       if (err) {
         return next(err);
       }
-      req.flash('success', { msg: 'Password has been changed.' });
-      return res.redirect('/account');
+      req.flash("success", { msg: "Password has been changed." });
+      return res.redirect("/account");
     });
   });
 };
@@ -195,8 +194,8 @@ exports.postDeleteAccount = (req, res, next) => {
       return next(err);
     }
     req.logout();
-    req.flash('info', { msg: 'Your account has been deleted.' });
-    return res.redirect('/');
+    req.flash("info", { msg: "Your account has been deleted." });
+    return res.redirect("/");
   });
 };
 
@@ -216,8 +215,8 @@ exports.getOauthUnlink = (req, res, next) => {
       if (err) {
         return next(err);
       }
-      req.flash('info', { msg: `${provider} account has been unlinked.` });
-      return res.redirect('/account');
+      req.flash("info", { msg: `${provider} account has been unlinked.` });
+      return res.redirect("/account");
     });
   });
 };

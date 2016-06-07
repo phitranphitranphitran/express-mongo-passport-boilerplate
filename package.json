@@ -6,9 +6,11 @@
     "url": "https://github.com/sahat/hackathon-starter.git"
   },
   "scripts": {
-    "start": "nodemon server.js",
+    "start:dev": "nodemon server.js",
+    "start:prod": "node server.js",
     "debug": "node-inspector server.js | nodemon --debug server.js",
-    "test": "mocha --reporter spec --timeout 5000"
+    "test": "mocha --reporter spec --timeout 5000",
+    "lint": "eslint ."
   },
   "dependencies": {
     "bcrypt-nodejs": "^0.0.3",
@@ -34,6 +36,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint": "^2.11.1",
     "mocha": "^2.4.5",
     "request": "^2.72.0",
     "supertest": "^1.2.0"

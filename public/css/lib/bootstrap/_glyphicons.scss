@@ -10,13 +10,13 @@
 @at-root {
   // Import the fonts
   @font-face {
-    font-family: 'Glyphicons Halflings';
-    src: url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.eot'), '#{$icon-font-path}#{$icon-font-name}.eot'));
-    src: url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.eot?#iefix'), '#{$icon-font-path}#{$icon-font-name}.eot?#iefix')) format('embedded-opentype'),
-         url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.woff2'), '#{$icon-font-path}#{$icon-font-name}.woff2')) format('woff2'),
-         url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.woff'), '#{$icon-font-path}#{$icon-font-name}.woff')) format('woff'),
-         url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.ttf'), '#{$icon-font-path}#{$icon-font-name}.ttf')) format('truetype'),
-         url(if($bootstrap-sass-asset-helper, twbs-font-path('#{$icon-font-path}#{$icon-font-name}.svg##{$icon-font-svg-id}'), '#{$icon-font-path}#{$icon-font-name}.svg##{$icon-font-svg-id}')) format('svg');
+    font-family: "Glyphicons Halflings";
+    src: url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.eot"), "#{$icon-font-path}#{$icon-font-name}.eot"));
+    src: url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.eot?#iefix"), "#{$icon-font-path}#{$icon-font-name}.eot?#iefix")) format("embedded-opentype"),
+         url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.woff2"), "#{$icon-font-path}#{$icon-font-name}.woff2")) format("woff2"),
+         url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.woff"), "#{$icon-font-path}#{$icon-font-name}.woff")) format("woff"),
+         url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.ttf"), "#{$icon-font-path}#{$icon-font-name}.ttf")) format("truetype"),
+         url(if($bootstrap-sass-asset-helper, twbs-font-path("#{$icon-font-path}#{$icon-font-name}.svg##{$icon-font-svg-id}"), "#{$icon-font-path}#{$icon-font-name}.svg##{$icon-font-svg-id}")) format("svg");
   }
 }
 
@@ -25,7 +25,7 @@
   position: relative;
   top: 1px;
   display: inline-block;
-  font-family: 'Glyphicons Halflings';
+  font-family: "Glyphicons Halflings";
   font-style: normal;
   font-weight: normal;
   line-height: 1;
@@ -243,8 +243,8 @@
 .glyphicon-paste                  { &:before { content: "\e206"; } }
 // The following 2 Glyphicons are omitted for the time being because
 // they currently use Unicode codepoints that are outside the
-// Basic Multilingual Plane (BMP). Older buggy versions of WebKit can't handle
-// non-BMP codepoints in CSS string escapes, and thus can't display these two icons.
+// Basic Multilingual Plane (BMP). Older buggy versions of WebKit can"t handle
+// non-BMP codepoints in CSS string escapes, and thus can"t display these two icons.
 // Notably, the bug affects some older versions of the Android Browser.
 // More info: https://github.com/twbs/bootstrap/issues/10106
 // .glyphicon-door                   { &:before { content: "\1f6aa"; } }

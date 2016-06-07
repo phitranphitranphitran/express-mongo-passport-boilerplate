@@ -91,7 +91,7 @@
     }
   }
 }
-// Collapse space between when there's no additional content.
+// Collapse space between when there"s no additional content.
 .panel-heading + .list-group {
   .list-group-item:first-child {
     border-top-width: 0;
@@ -222,7 +222,7 @@
 .panel-group {
   margin-bottom: $line-height-computed;
 
-  // Tighten up margin so it's only between panels
+  // Tighten up margin so it"s only between panels
   .panel {
     margin-bottom: 0;
     border-radius: $panel-border-radius;
