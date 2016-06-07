@@ -39,7 +39,7 @@ mongoose.connection.on("error", (err) => {
 });
 mongoose.connection.once("open", () => {
 	console.log("MongoDB connection successful "
-		+ (app.get("env") === "development" ? process.env.MONGO_URI : ""));
+		+ (process.env.NODE_ENV === "development" ? process.env.MONGO_URI : ""));
 });
 
 /**
@@ -83,7 +83,7 @@ app.use(express.static(path.join(__dirname, "public")));
 /**
  * Routes handler
  */
-app.use(require("./routes"));
+app.use(require("./app/routes"));
 
 /**
  * Error Handlers
@@ -101,7 +101,7 @@ app.use((err, req, res, next) => {
   if (!err.hasOwnProperty("status")) {
     err.status = 500;
   }
-  if (app.get("env") === "production") {
+  if (process.env.NODE_ENV === "production") {
     // no stacktraces leaked to user in production
     err.stack = null;
   }

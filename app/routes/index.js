@@ -20,7 +20,7 @@ router.get("/logout", userController.logout);
 router.get("/signup", userController.getSignup);
 router.post("/signup", userController.postSignup);
 
-// account routes
+// account routes, requires authentication
 router.use("/account", passportConfig.isAuthenticated, accountRoutes);
 
 // auth routes
