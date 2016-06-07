@@ -44,8 +44,12 @@ userSchema.pre("save", function (next) {
  * Helper method for validating user's password.
  */
 userSchema.methods.comparePassword = function (candidatePassword, cb) {
+  // if signed in with third-party strategy, no password was set
+  if (!this.password) {
+    return cb(null, true);
+  }
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
-    cb(err, isMatch);
+    return cb(err, isMatch);
   });
 };
 

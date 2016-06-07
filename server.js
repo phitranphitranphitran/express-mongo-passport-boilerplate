@@ -95,7 +95,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   // console.error(err);
   if (!err.hasOwnProperty("status")) {
-    err.status = 500;
+		err.status = 500;
   }
   if (process.env.NODE_ENV === "production") {
     // no stacktraces leaked to user in production

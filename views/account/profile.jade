@@ -29,10 +29,11 @@ block content
 
   form.form-horizontal(action="/account/password", method="POST")
     input(type="hidden", name="_csrf", value=_csrf)
-    .form-group
-      label.col-sm-3.control-label(for="currentPassword") Current Password
-      .col-sm-7
-        input.form-control(type="password", name="currentPassword", id="currentPassword")
+    if user.password
+      .form-group
+        label.col-sm-3.control-label(for="currentPassword") Current Password
+        .col-sm-7
+          input.form-control(type="password", name="currentPassword", id="currentPassword")
     .form-group
       label.col-sm-3.control-label(for="newPassword") New Password
       .col-sm-7
@@ -52,7 +53,7 @@ block content
 
   form.form-horizontal(action="/account/delete", method="POST")
     .form-group
-      p.col-sm-offset-3.col-sm-4 You can delete your account, but keep in mind this action is irreversible.
+      p.col-sm-offset-3.col-sm-9 You can delete your account, but keep in mind this action is irreversible.
       input(type="hidden", name="_csrf", value=_csrf)
       .col-sm-offset-3.col-sm-4
         button.btn.btn-danger(type="submit")
