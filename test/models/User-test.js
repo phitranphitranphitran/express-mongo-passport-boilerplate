@@ -2,7 +2,7 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const User = require("../models/User");
+const User = require("../../app/models/User");
 
 describe("User Model", () => {
   it("should create a new user", (done) => {
