@@ -1,6 +1,5 @@
 "use strict";
 
-const _ = require("lodash");
 const passport = require('passport');
 const request = require('request');
 const LocalStrategy = require('passport-local').Strategy;
@@ -78,7 +77,7 @@ passport.use(new FacebookStrategy({
         user.tokens.push({ kind: 'facebook', accessToken });
         user.email = user.email || profile._json.email;
         user.profile.name = user.profile.name || profile.name.givenName + ' ' + profile.name.familyName;
-        user.profile.picture = user.profile.picture || `https://graph.facebook.com/${profile.id}/picture?type=large`;
+        user.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large` || user.profile.picture;
         user.save((err) => {
           req.flash('info', { msg: 'Facebook account has been linked.' });
           return done(err, user);
@@ -134,7 +133,7 @@ passport.use(new GitHubStrategy({
           user.tokens.push({ kind: 'github', accessToken });
           user.email = user.email || profile._json.email;
           user.profile.name = user.profile.name || profile.displayName || profile.username;
-          user.profile.picture = user.profile.picture || profile._json.avatar_url;
+          user.profile.picture = profile._json.avatar_url || user.profile.picture;
           user.save((err) => {
             req.flash('info', { msg: 'GitHub account has been linked.' });
             return done(err, user);
@@ -189,7 +188,7 @@ passport.use(new TwitterStrategy({
           user.twitter = profile.id;
           user.tokens.push({ kind: 'twitter', accessToken, tokenSecret });
           user.profile.name = user.profile.name || profile.displayName;
-          user.profile.picture = user.profile.picture || profile._json.profile_image_url_https;
+          user.profile.picture = profile._json.profile_image_url_https || user.profile.picture;
           user.save((err) => {
             req.flash('info', { msg: 'Twitter account has been linked.' });
             return done(err, user);
@@ -234,7 +233,7 @@ passport.use(new GoogleStrategy({
           user.tokens.push({ kind: 'google', accessToken });
           user.email = user.email || profile.emails[0].value;
           user.profile.name = user.profile.name || profile.displayName;
-          user.profile.picture = user.profile.picture || profile._json.image.url;
+          user.profile.picture = profile._json.image.url  || user.profile.picture;
           user.save((err) => {
             req.flash('info', { msg: 'Google account has been linked.' });
             return done(err, user);
@@ -283,16 +282,7 @@ exports.isAuthenticated = (req, res, next) => {
 exports.isAuthorized = (req, res, next) => {
   const provider = req.path.split('/').slice(-1)[0];
 
-  // let hasToken = false;
-  // for (let i = 0; i < req.user.tokens.length; i++) {
-  //   if (req.user.tokens[i].kind.provider === provider) {
-  //     hasToken = true;
-  //     break;
-  //   }
-  // }
-  // if (hasToken) {
-
-  if (_.find(req.user.tokens, { kind: provider })) {
+  if (req.user.tokens.filter(token => token.kind === provider).length > 0) {
     next();
   } else {
     res.redirect(`/auth/${provider}`);

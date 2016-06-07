@@ -30,7 +30,7 @@ describe('GET /signup', () => {
 describe('GET /random-url', () => {
   it('should return 404', (done) => {
     request(app)
-      .get('/reset')
+      .get('/random-url')
       .expect(404, done);
   });
 });
