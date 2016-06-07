@@ -45,7 +45,6 @@ mongoose.connection.once("open", () => {
 /**
  * Express configuration.
  */
-app.set("port", process.env.PORT || 3000);
 app.set("env", process.env.NODE_ENV || "production");
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
@@ -89,11 +88,14 @@ app.use(require("./routes"));
 /**
  * Error Handlers
  */
+
+// catch 404
 app.use((req, res, next) => {
   var err = new Error("Not Found");
   err.status = 404;
   next(err);
 });
+
 app.use((err, req, res, next) => {
   // console.error(err);
   if (!err.hasOwnProperty("status")) {
@@ -113,8 +115,5 @@ app.use((err, req, res, next) => {
 /**
  * Start Express server.
  */
-app.listen(app.get("port"), () => {
-  console.log("Express server listening on port %d in %s mode", app.get("port"), app.get("env"));
-});
 
 module.exports = app;

@@ -4,9 +4,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:dev": "concurrently --kill-others \"gulp watch\" \"node-inspector server.js\" \"nodemon --debug server.js\"",
-    "start:prod": "node server.js",
-    "debug": "node-debug server.js",
+    "start:dev": "concurrently --kill-others \"gulp watch\" \"node-inspector ./bin/www\" \"nodemon --debug ./bin/www\"",
+    "start:prod": "node ./bin/www",
+    "build:prod": "gulp",
+    "postinstall": "npm run build:prod",
+    "debug": "node-debug ./bin/www",
     "test": "mocha --recursive",
     "test:watch": "npm test -- --watch",
     "lint": "eslint ."
