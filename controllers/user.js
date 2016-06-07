@@ -1,6 +1,5 @@
 "use strict";
 
-const async = require('async');
 const crypto = require('crypto');
 const passport = require('passport');
 const User = require('../models/User');
