@@ -21,29 +21,24 @@ exports.getLogin = (req, res) => {
  * Sign in using email and password.
  */
 exports.postLogin = (req, res, next) => {
-  req.assert("email", "Email is not valid").isEmail();
-  req.assert("password", "Password cannot be blank").notEmpty();
-  req.sanitize("email").normalizeEmail({ remove_dots: false });
-  const errors = req.validationErrors();
-  if (errors) {
-    req.flash("errors", errors);
-    return res.redirect("/login");
-  }
-
-  passport.authenticate("local", (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      req.flash("errors", info);
+  validateInputs(req, (errors) => {
+    if (errors) {
+      req.flash("errors", errors);
       return res.redirect("/login");
     }
-    req.logIn(user, (err) => {
+    passport.authenticate("local", (err, user, info) => {
       if (err) { return next(err); }
-      req.flash("success", { msg: "Success! You are logged in." });
-      res.redirect(req.session.returnTo || "/");
-    });
-  })(req, res, next);
+      if (!user) {
+        req.flash("errors", info);
+        return res.redirect("/login");
+      }
+      req.logIn(user, (err) => {
+        if (err) { return next(err); }
+        req.flash("success", { msg: "Success! You are logged in." });
+        res.redirect(req.session.returnTo || "/");
+      });
+    })(req, res, next);
+  });
 };
 
 /**
@@ -73,41 +68,32 @@ exports.getSignup = (req, res) => {
  * Create a new local account.
  */
 exports.postSignup = (req, res, next) => {
-  req.sanitize("name").trim();
-  req.assert("name", "Name is not valid")
-    .notEmpty()
-    .matches(/^[a-zA-Z0-9-_\s]+$/)
-    .isLength({ min: 4, max: 30 });
-  req.assert("email", "Email is not valid").isEmail();
-  req.assert("password", "Password must be at least 4 characters long").len(4);
   req.assert("confirmPassword", "Passwords do not match").equals(req.body.password);
-  req.sanitize("email").normalizeEmail({ remove_dots: false });
-
-  const errors = req.validationErrors();
-
-  if (errors) {
-    req.flash("errors", errors);
-    return res.redirect("/signup");
-  }
-
-  const user = new User({
-    email: req.body.email,
-    password: req.body.password,
-    profile: {
-      name: req.body.name
-    }
-  });
-
-  User.findOne({ email: req.body.email }, (err, existingUser) => {
-    if (existingUser) {
-      req.flash("errors", { msg: "Account with that email address already exists." });
+  validateInputs(req, (errors) => {
+    if (errors) {
+      req.flash("errors", errors);
       return res.redirect("/signup");
     }
-    user.save((err) => {
-      if (err) { return next(err); }
-      req.logIn(user, (err) => {
+
+    const user = new User({
+      email: req.body.email,
+      password: req.body.password,
+      profile: {
+        name: req.body.name
+      }
+    });
+
+    User.findOne({ email: req.body.email }, (err, existingUser) => {
+      if (existingUser) {
+        req.flash("errors", { msg: "Account with that email address already exists." });
+        return res.redirect("/signup");
+      }
+      user.save((err) => {
         if (err) { return next(err); }
-        res.redirect("/");
+        req.logIn(user, (err) => {
+          if (err) { return next(err); }
+          res.redirect("/");
+        });
       });
     });
   });
@@ -128,33 +114,27 @@ exports.getAccount = (req, res) => {
  * Update profile information.
  */
 exports.postUpdateProfile = (req, res, next) => {
-  req.sanitize("name").trim();
-  req.assert("name", "Name is not valid")
-    .notEmpty()
-    .matches(/^[a-zA-Z0-9-_\s]+$/)
-    .isLength({ min: 4, max: 30 });
-  req.assert("email", "Please enter a valid email address.").isEmail();
-  req.sanitize("email").normalizeEmail({ remove_dots: false });
-  const errors = req.validationErrors();
-  if (errors) {
-    req.flash("errors", errors);
-    return res.redirect("/account");
-  }
-
-  const user = req.user;
-  user.email = req.body.email || user.email;
-  user.profile.name = req.body.name || user.profile.name;
-  user.save((err) => {
-    if (err) {
-      // error code 11000 thrown when email is not unique
-      if (err.code === 11000) {
-        req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
-        return res.redirect("/account");
-      }
-      return next(err);
+  validateInputs(req, (errors) => {
+    if (errors) {
+      req.flash("errors", errors);
+      return res.redirect("/account");
     }
-    req.flash("success", { msg: "Profile information has been updated." });
-    return res.redirect("/account");
+
+    const user = req.user;
+    user.email = req.body.email || user.email;
+    user.profile.name = req.body.name || user.profile.name;
+    user.save((err) => {
+      if (err) {
+        // error code 11000 thrown when email is not unique
+        if (err.code === 11000) {
+          req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
+          return res.redirect("/account");
+        }
+        return next(err);
+      }
+      req.flash("success", { msg: "Profile information has been updated." });
+      return res.redirect("/account");
+    });
   });
 };
 
@@ -216,17 +196,25 @@ exports.getOauthUnlink = (req, res, next) => {
   });
 };
 
-function validateInputs(req) {
+/**
+ * Helper function for validating name, email, password
+ * Any additional validations can simply be done before passing req
+ */
+function validateInputs(req, cb) {
   if (req.body.name) {
     req.sanitize("name").trim();
     req.assert("name", "Name is not valid")
       .notEmpty()
       .matches(/^[a-zA-Z0-9-_\s]+$/)
-      .isLength({ min: 4, max: 30 });
+      .isLength({ min: 3, max: 30 });
   }
   if (req.body.email) {
     req.assert("email", "Email is not valid").isEmail();
     req.sanitize("email").normalizeEmail({ remove_dots: false });
   }
+  if (req.body.password) {
+    req.assert("password", "Invalid password").notEmpty().len(4);
+  }
 
+  return cb(req.validationErrors());
 }
