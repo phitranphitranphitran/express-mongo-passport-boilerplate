@@ -4,10 +4,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:dev": "gulp watch | node-inspector server.js | nodemon --debug server.js",
+    "start:dev": "concurrently --kill-others \"gulp watch\" \"node-inspector server.js\" \"nodemon --debug server.js\"",
     "start:prod": "node server.js",
     "debug": "node-debug server.js",
-    "test": "mocha --reporter spec --timeout 5000",
+    "test": "mocha --recursive",
+    "test:watch": "npm test -- --watch",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "concurrently": "^2.1.0",
     "eslint": "^2.11.1",
     "gulp-util": "^3.0.7",
     "mocha": "^2.4.5",
