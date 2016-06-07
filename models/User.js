@@ -21,13 +21,14 @@ const userSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 /**
- * Password hash middleware.
+ * Hook method before saving a user
  */
 userSchema.pre("save", function (next) {
   const user = this;
   if (!user.profile.picture) {
     user.profile.picture = user.gravatar();
   }
+  // hash password via bcrypt if it was changed
   if (!user.isModified("password")) { return next(); }
   bcrypt.genSalt(10, (err, salt) => {
     if (err) { return next(err); }
@@ -40,7 +41,7 @@ userSchema.pre("save", function (next) {
 });
 
 /**
- * Helper method for validating user"s password.
+ * Helper method for validating user's password.
  */
 userSchema.methods.comparePassword = function (candidatePassword, cb) {
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
@@ -49,7 +50,7 @@ userSchema.methods.comparePassword = function (candidatePassword, cb) {
 };
 
 /**
- * Helper method for getting user"s gravatar.
+ * Helper method for getting user's gravatar.
  */
 userSchema.methods.gravatar = function (size) {
   if (!size) {

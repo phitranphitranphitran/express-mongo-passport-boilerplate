@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start:dev": "nodemon server.js",
+    "start:dev": "gulp watch | node-inspector server.js | nodemon --debug server.js",
     "start:prod": "node server.js",
-    "debug": "node-inspector server.js | nodemon --debug server.js",
+    "debug": "node-debug server.js",
     "test": "mocha --reporter spec --timeout 5000",
     "lint": "eslint ."
   },
@@ -20,11 +20,14 @@
     "express-flash": "^0.0.2",
     "express-session": "^1.13.0",
     "express-validator": "^2.20.4",
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.2.1",
+    "gulp-sass": "^2.3.1",
+    "gulp-sourcemaps": "^1.6.0",
     "jade": "^1.11.0",
     "lusca": "^1.4.1",
     "mongoose": "^4.4.17",
     "morgan": "^1.7.0",
-    "node-sass-middleware": "^0.9.8",
     "passport": "0.3.2",
     "passport-facebook": "^2.1.0",
     "passport-github": "^1.1.0",
@@ -35,6 +38,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "eslint": "^2.11.1",
+    "gulp-util": "^3.0.7",
     "mocha": "^2.4.5",
     "request": "^2.72.0",
     "supertest": "^1.2.0"
