@@ -1,10 +1,8 @@
 {
-  "name": "hackathon-starter",
-  "version": "4.0.1",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sahat/hackathon-starter.git"
-  },
+  "name": "express-mongo-passport-boilerplate",
+  "description": "Boilerplate for full-stack Node.js apps",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
     "start:dev": "nodemon server.js",
     "start:prod": "node server.js",
@@ -42,7 +40,8 @@
     "supertest": "^1.2.0"
   },
   "engines": {
-    "node": "6.1.0"
+    "node": "6.1.0",
+    "npm": "2.14.12"
   },
   "license": "MIT"
 }
