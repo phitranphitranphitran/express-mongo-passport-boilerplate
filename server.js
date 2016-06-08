@@ -27,28 +27,30 @@ require("dotenv").config();
 const app = express();
 
 /**
+ * environment shorthands
+ */
+const testing = process.env.NODE_ENV === "test";
+const production = process.env.NODE_ENV === "production";
+
+/**
  * Connect to MongoDB.
  */
-mongoose.connect(process.env.MONGO_URI, {
+const mongoUri = testing ? process.env.MONGO_TEST_URI : process.env.MONGO_URI;
+const options = testing ? undefined : {
   server: {
-    socketOptions: {
-      keepAlive: 300000,
-      connectTimeoutMS: 30000
-    }
+    socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 }
   },
   replset: {
-    socketOptions: {
-      keepAlive: 300000,
-      connectTimeoutMS : 30000
-    }
+    socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 }
   }
-});
+};
+mongoose.connect(mongoUri, options);
 mongoose.connection.on("error", (err) => {
-  console.error("MongoDB connection error ", err);
+  console.error("MongoDB connection error \n", err);
 });
 mongoose.connection.once("open", () => {
 	console.log("MongoDB connection successful "
-		+ (process.env.NODE_ENV === "development" ? process.env.MONGO_URI : ""));
+		+ (process.env.NODE_ENV !== "production" ? mongoUri : ""));
 });
 
 /**
@@ -67,18 +69,21 @@ app.use(session({
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
   store: new MongoStore({
-    url: process.env.MONGO_URI,
+    url: mongoUri,
     autoReconnect: true
   })
 }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
-app.use(lusca.csrf());
-app.use(lusca.xframe("SAMEORIGIN"));
-app.use(lusca.xssProtection(true));
-app.use(lusca.hsts({ maxAge: 31536000 }));
-app.use(lusca.nosniff());
+// disable security middleware during testing (for mock http requests)
+if (!testing) {
+  app.use(lusca.csrf());
+  app.use(lusca.xframe("SAMEORIGIN"));
+  app.use(lusca.xssProtection(true));
+  app.use(lusca.hsts({ maxAge: 31536000 }));
+  app.use(lusca.nosniff());
+}
 app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
@@ -98,15 +103,17 @@ app.use(require("./app/routes"));
 app.use((req, res, next) => {
   var err = new Error("Not Found");
   err.status = 404;
-  next(err);
+  return next(err);
 });
 
 app.use((err, req, res, next) => {
-  // console.error(err);
+  if (testing) {
+    console.error(err);
+  }
   if (!err.hasOwnProperty("status")) {
 		err.status = 500;
   }
-  if (process.env.NODE_ENV === "production") {
+  if (production) {
     // no stacktraces leaked to user in production
     err.stack = null;
   }

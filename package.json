@@ -9,7 +9,7 @@
     "build:prod": "gulp",
     "postinstall": "npm run build:prod",
     "debug": "node-debug ./bin/www",
-    "test": "mocha --recursive",
+    "test": "set NODE_ENV=test&&mocha",
     "test:watch": "npm test -- --watch",
     "lint": "eslint ."
   },
@@ -45,6 +45,7 @@
     "eslint": "^2.11.1",
     "gulp-util": "^3.0.7",
     "mocha": "^2.4.5",
+    "node-mocks-http": "^1.5.2",
     "request": "^2.72.0",
     "supertest": "^1.2.0"
   },

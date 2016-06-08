@@ -41,7 +41,7 @@ describe("User Model", () => {
       password: "password"
     });
     user.save((err, user) => {
-      expect(err).to.not.be.defined;
+      expect(err).to.not.exist;
       expect(user.profile.name).to.equal("MrTest");
       expect(user.email).to.equal("test@gmail.com");
       expect(user).to.have.property("createdAt");
@@ -57,7 +57,7 @@ describe("User Model", () => {
       password: "password"
     });
     user.save((err) => {
-      expect(err).to.be.defined;
+      expect(err).to.exist;
       expect(err.code).to.equal(11000);
       done();
     });
@@ -65,7 +65,7 @@ describe("User Model", () => {
 
   it("should find user by email", (done) => {
     User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-      expect(err).to.be.null;
+      expect(err).to.not.exist;
       expect(user.profile.name).to.equal("bobby");
       expect(user.email).to.equal("bobby@bobby.com");
       done();
@@ -74,10 +74,10 @@ describe("User Model", () => {
 
   it("should delete a user", (done) => {
     User.remove({ email: "bobby@bobby.com" }, (err) => {
-      expect(err).to.be.null;
+      expect(err).to.not.exist;
       // done();
       User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-        expect(user).to.not.be.defined;
+        expect(user).to.not.exist;
         done();
       });
     });
@@ -89,8 +89,8 @@ describe("User Model", () => {
       password: "password"
     });
     user.save((err, user) => {
-      expect(err).to.be.defined;
-      expect(user).to.not.be.defined;
+      expect(err).to.exist;
+      expect(user).to.not.exist;
       done();
     });
   });
@@ -101,7 +101,7 @@ describe("User Model", () => {
         right: user.comparePassword.bind(user, "bobbyisthebest"),
         wrong: user.comparePassword.bind(user, "12345")
       }, (err, isMatches) => {
-        expect(err).to.not.be.defined;
+        expect(err).to.not.exist;
         expect(isMatches.right).to.be.true;
         expect(isMatches.wrong).to.be.false;
         done();
@@ -112,11 +112,11 @@ describe("User Model", () => {
     // User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
     //
     //   user.comparePassword("bobbyisthebest", (err, isMatch) => {
-    //     expect(err).to.not.be.defined;
+    //     expect(err).to.not.exist;
     //     expect(isMatch).to.be.true;
     //
     //     user.comparePassword("12345", (err, isMatch) => {
-    //       expect(err).to.not.be.defined;
+    //       expect(err).to.not.exist;
     //       expect(isMatch).to.be.false;
     //       done();
     //     });
@@ -182,4 +182,5 @@ describe("User Model", () => {
     mongoose.disconnect();
     done();
   });
+
 });

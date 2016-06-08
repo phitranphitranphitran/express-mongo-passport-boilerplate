@@ -88,6 +88,7 @@ exports.postSignup = (req, res, next) => {
         req.flash("errors", { msg: "Account with that email address already exists." });
         return res.redirect("/signup");
       }
+
       user.save((err) => {
         if (err) { return next(err); }
         req.logIn(user, (err) => {
