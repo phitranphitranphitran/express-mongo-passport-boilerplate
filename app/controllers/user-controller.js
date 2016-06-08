@@ -154,15 +154,6 @@ exports.postUpdatePassword = (req, res, next) => {
 
   const user = req.user;
 
-  // if (!user.password) {
-  //   user.password = req.body.newPassword;
-  //   user.save((err) => {
-  //     if (err) { return next(err); }
-  //     req.flash("success", { msg: "Password has been changed." });
-  //     return res.redirect("/account");
-  //   });
-  // }
-
   user.comparePassword(req.body.currentPassword, (err, isMatch) => {
     if (err) { return next(err); }
     if (!isMatch) {

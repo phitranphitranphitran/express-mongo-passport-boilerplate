@@ -80,27 +80,49 @@ describe("Server", () => {
           .end(done);
       });
 
-      // it("should be logged in after", (done) => {
-      //   request(app)
-      //     .post("/signup")
-      //     .send({
-      //       name: "jenny",
-      //       email: "jenny@jenny.com",
-      //       password: "jennyisthebest",
-      //       confirmPassword: "jennyisthebest"
-      //     })
-      //     .end((err, res) => {
-      //       request(app)
-      //         .get("/")
-      //         .end((err, res) => {
-      //           expect(err).to.not.exist;
-      //           expect(res.user).to.exist;
-      //           done();
-      //         });
-      //     });
-      // });
+      it("should not register mismatched passwords", (done) => {
+        User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+          expect(user).to.not.exist;
+          request(app)
+            .post("/signup")
+            .send({
+              name: "jenny",
+              email: "jenny@jenny.com",
+              password: "jennyisthebest",
+              confirmPassword: "jennyisNOTthebest"
+            })
+            .expect(302)
+            .expect("Location", "/signup")
+            .end((err, res) => {
+              User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+                expect(user).to.not.exist;
+              });
+              done();
+            });
+        });
+      });
 
-      // should be logged in after signup
+      it("should not register existing emails", (done) => {
+        request(app)
+          .post("/signup")
+          .send({
+            name: "bobbyCopy",
+            email: "bobby@bobby.com",
+            password: "bobbyisthebest",
+            confirmPassword: "bobbyisthebest"
+          })
+          .expect(302)
+          .expect("Location", "/signup")
+          .end((err, res) => {
+            User.find({ email: "bobby@bobby.com" }, (err, users) => {
+              expect(users.length).to.equal(1);
+              expect(users[0].profile.name).to.equal("bobby");
+              done();
+            });
+          });
+      });
+
+      // should reject bad input
     });
 
     afterEach(done => {
