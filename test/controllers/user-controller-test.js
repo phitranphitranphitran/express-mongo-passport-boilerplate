@@ -57,7 +57,7 @@ describe("User Controller", () => {
         .expect(302)
         .end((err, res) => {
           expect(err).to.not.exist;
-          // accessing /account with cookie should be OK
+          // accessing /account should be OK
            agent.get("/account")
             .expect(200)
             .end((err, res) => {
@@ -170,42 +170,65 @@ describe("User Controller", () => {
       });
     });
 
-      describe("POST /account/profile", () => {
+    describe("POST /account/profile", () => {
 
-        it("should update user profile info", (done) => {
-            agent.post("/account/profile")
-             .send({
-               email: "notbobby@notbobby.com",
-               name: "notbobby"
-             })
-             .expect(302)
-             .expect("/account")
-             .end((err, res) => {
+      it("should update user profile info", (done) => {
+          agent.post("/account/profile")
+           .send({
+             email: "notbobby@notbobby.com",
+             name: "notbobby"
+           })
+           .expect(302)
+           .expect("/account")
+           .end((err, res) => {
 
-               User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+             User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+               expect(err).to.not.exist;
+               expect(user).to.not.exist;
+
+               User.findOne({ email: "notbobby@notbobby.com" }, (err, user) => {
                  expect(err).to.not.exist;
-                 expect(user).to.not.exist;
-
-                 User.findOne({ email: "notbobby@notbobby.com" }, (err, user) => {
-                   expect(err).to.not.exist;
-                   expect(user).to.exist;
-                   expect(user.email).to.equal("notbobby@notbobby.com");
-                   expect(user.profile.name).to.equal("notbobby");
-                   done();
-                 });
+                 expect(user).to.exist;
+                 expect(user.email).to.equal("notbobby@notbobby.com");
+                 expect(user.profile.name).to.equal("notbobby");
+                 done();
                });
              });
-        });
+           });
+      });
 
-        it("should not update invalid name", (done) => {
-          agent.post("/account/profile")
-            .send({
-              name: "@#r^&#)wt*ey(583&"
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
+      it("should not update invalid name", (done) => {
+        agent.post("/account/profile")
+          .send({
+            name: "@#r^&#)wt*ey(583&"
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
               expect(err).to.not.exist;
+              expect(user).to.exist;
+              expect(user.profile.name).to.equal("bobby");
+              done();
+            });
+          });
+      });
+
+      it("should not update invalid email", (done) => {
+        agent.post("/account/profile")
+          .send({
+            email: "@#r^&#)wt*ey(583&"
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "@#r^&#)wt*ey(583&" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.not.exist;
 
               User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
                 expect(err).to.not.exist;
@@ -214,124 +237,118 @@ describe("User Controller", () => {
                 done();
               });
             });
-        });
-
-        it("should not update invalid email", (done) => {
-          agent.post("/account/profile")
-            .send({
-              email: "@#r^&#)wt*ey(583&"
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
-              expect(err).to.not.exist;
-
-              User.findOne({ email: "@#r^&#)wt*ey(583&" }, (err, user) => {
-                expect(err).to.not.exist;
-                expect(user).to.not.exist;
-
-                User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-                  expect(err).to.not.exist;
-                  expect(user).to.exist;
-                  expect(user.profile.name).to.equal("bobby");
-                  done();
-                });
-              });
-            });
-        });
-
-        it("should trim whitespace from name", (done) => {
-          agent.post("/account/profile")
-            .send({
-              name: "    newbobby    "
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
-              expect(err).to.not.exist;
-
-              User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-                expect(err).to.not.exist;
-                expect(user.profile.name).to.equal("newbobby");
-                done();
-              });
-            });
-        });
+          });
       });
 
-      describe("POST /account/password", () => {
+      it("should trim whitespace from name", (done) => {
+        agent.post("/account/profile")
+          .send({
+            name: "    newbobby    "
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
 
-        it("should change user password", (done) => {
-          agent.post("/account/password")
-            .send({
-              currentPassword: "bobbyisthebest",
-              newPassword: "newpassword123",
-              confirmPassword: "newpassword123"
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
               expect(err).to.not.exist;
-
-              User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-                user.comparePassword("newpassword123", (err, isMatch) => {
-                  expect(err).to.not.exist;
-                  expect(isMatch).to.be.true;
-                  done();
-                });
-              });
+              expect(user.profile.name).to.equal("newbobby");
+              done();
             });
-        });
-
-        it("should deny incorrect current password", (done) => {
-          agent.post("/account/password")
-            .send({
-              currentPassword: "bobbyisNOTthebest",
-              newPassword: "newpassword123",
-              confirmPassword: "newpassword123"
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
-              expect(err).to.not.exist;
-
-              User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-                // old password should remain
-                user.comparePassword("bobbyisthebest", (err, isMatch) => {
-                  expect(err).to.not.exist;
-                  expect(isMatch).to.be.true;
-                  done();
-                });
-              });
-            });
-        });
-
-        it("should deny mismatching passwords", (done) => {
-          agent.post("/account/password")
-            .send({
-              currentPassword: "bobbyisthebest",
-              newPassword: "newpassword123",
-              confirmPassword: "verynewpassword4321"
-            })
-            .expect(302)
-            .expect("Location", "/account")
-            .end((err, res) => {
-              expect(err).to.not.exist;
-
-              User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-                // old password should remain
-                user.comparePassword("bobbyisthebest", (err, isMatch) => {
-                  expect(err).to.not.exist;
-                  expect(isMatch).to.be.true;
-                  done();
-                });
-              });
-            });
-        });
-
+          });
       });
 
     });
+
+    describe("POST /account/password", () => {
+
+      it("should change user password", (done) => {
+        agent.post("/account/password")
+          .send({
+            currentPassword: "bobbyisthebest",
+            newPassword: "newpassword123",
+            confirmPassword: "newpassword123"
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+              user.comparePassword("newpassword123", (err, isMatch) => {
+                expect(err).to.not.exist;
+                expect(isMatch).to.be.true;
+                done();
+              });
+            });
+          });
+      });
+
+      it("should deny incorrect current password", (done) => {
+        agent.post("/account/password")
+          .send({
+            currentPassword: "bobbyisNOTthebest",
+            newPassword: "newpassword123",
+            confirmPassword: "newpassword123"
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+              // old password should remain
+              user.comparePassword("bobbyisthebest", (err, isMatch) => {
+                expect(err).to.not.exist;
+                expect(isMatch).to.be.true;
+                done();
+              });
+            });
+          });
+      });
+
+      it("should deny mismatching passwords", (done) => {
+        agent.post("/account/password")
+          .send({
+            currentPassword: "bobbyisthebest",
+            newPassword: "newpassword123",
+            confirmPassword: "verynewpassword4321"
+          })
+          .expect(302)
+          .expect("Location", "/account")
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+              // old password should remain
+              user.comparePassword("bobbyisthebest", (err, isMatch) => {
+                expect(err).to.not.exist;
+                expect(isMatch).to.be.true;
+                done();
+              });
+            });
+          });
+      });
+
+    });
+
+    describe("POST /account/delete", () => {
+      it("should delete user", (done) => {
+        agent.post("/account/delete")
+          .expect(302)
+          .end((err, res) => {
+            expect(err).to.not.exist;
+
+            User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.not.exist;
+              done();
+            });
+          });
+      });
+    });
+
+  });
 
   describe("POST /signup", () => {
 
