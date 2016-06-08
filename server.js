@@ -30,12 +30,21 @@ const app = express();
  * Connect to MongoDB.
  */
 mongoose.connect(process.env.MONGO_URI, {
-	server: {
-		socketOptions: { keepAlive: 1 }
-	}
+  server: {
+    socketOptions: {
+      keepAlive: 300000,
+      connectTimeoutMS: 30000
+    }
+  },
+  replset: {
+    socketOptions: {
+      keepAlive: 300000,
+      connectTimeoutMS : 30000
+    }
+  }
 });
 mongoose.connection.on("error", (err) => {
-  console.log("MongoDB connection error ", err);
+  console.error("MongoDB connection error ", err);
 });
 mongoose.connection.once("open", () => {
 	console.log("MongoDB connection successful "

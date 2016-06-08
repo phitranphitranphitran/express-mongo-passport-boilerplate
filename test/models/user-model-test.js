@@ -54,8 +54,9 @@ describe("User Model", () => {
       email: "test2@gmail.com",
       password: "password"
     });
-    user.save((err) => {
+    user.save((err, user) => {
       expect(err).to.be.defined;
+      expect(user).to.be.undefined;
       done();
     });
   });
