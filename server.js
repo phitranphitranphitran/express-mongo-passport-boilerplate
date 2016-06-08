@@ -61,7 +61,9 @@ app.set("env", process.env.NODE_ENV || "production");
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 app.use(compression());
-app.use(logger("dev"));
+if (!testing) {
+  app.use(logger("dev"));
+}
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
