@@ -13,12 +13,17 @@ const User = require("../../app/models/user-model");
 
 describe("User Controller", () => {
 
+  let agent;
+
   before(done => {
     mongoose.connect(process.env.MONGO_TEST_URI);
     mongoose.connection.once("open", done);
   });
 
   beforeEach(done => {
+    // superagent; resets login cookies after every test
+    agent = request.agent(app);
+
     const users = [
       new User({
         profile: { name: "johnny" },
@@ -42,9 +47,8 @@ describe("User Controller", () => {
 
   describe("POST /login", () => {
 
-    it("logs local user in", (done) => {
-      let cookie;
-      request(app).post("/login")
+    it("should log local user in", (done) => {
+       agent.post("/login")
         .send({
           email: "tommy@tommy.com",
           password: "tommyisthebest"
@@ -53,11 +57,8 @@ describe("User Controller", () => {
         .expect(302)
         .end((err, res) => {
           expect(err).to.not.exist;
-          cookie = res.headers["set-cookie"];
-
           // accessing /account with cookie should be OK
-          request(app).get("/account")
-            .set("cookie", cookie)
+           agent.get("/account")
             .expect(200)
             .end((err, res) => {
               expect(err).to.not.exist;
@@ -66,9 +67,8 @@ describe("User Controller", () => {
         });
     });
 
-    it("denies nonexistant email", (done) => {
-      let cookie;
-      request(app).post("/login")
+    it("should deny nonexistant email", (done) => {
+       agent.post("/login")
         .send({
           email: "nobody@nobody.com",
           password: "whoami"
@@ -77,10 +77,8 @@ describe("User Controller", () => {
         .expect("Location", "/login")
         .end((err, res) => {
           expect(err).to.not.exist;
-          cookie = res.headers["set-cookie"];
 
-          request(app).get("/account")
-            .set("cookie", cookie)
+           agent.get("/account")
             .expect(302)
             .expect("Location", "/login")
             .end((err, res) => {
@@ -90,9 +88,8 @@ describe("User Controller", () => {
         });
     });
 
-    it("denies incorrect password", (done) => {
-      let cookie;
-      request(app).post("/login")
+    it("should deny incorrect password", (done) => {
+       agent.post("/login")
         .send({
           email: "bobby@bobby.com",
           password: "idontknow"
@@ -101,10 +98,8 @@ describe("User Controller", () => {
         .expect("Location", "/login")
         .end((err, res) => {
           expect(err).to.not.exist;
-          cookie = res.headers["set-cookie"];
 
-          request(app).get("/account")
-            .set("cookie", cookie)
+           agent.get("/account")
             .expect(302)
             .expect("Location", "/login")
             .end((err, res) => {
@@ -114,11 +109,97 @@ describe("User Controller", () => {
         });
     });
 
-    afterEach(done => {
-      request(app).get("/logout").end(done);
+  });
+
+  describe("GET /logout", () => {
+    it("should deny account access after", (done) => {
+      agent.post("/login")
+        .send({
+          email: "bobby@bobby.com",
+          password: "bobbyisthebest"
+        })
+        .end((err, res) => {
+
+          agent.get("/logout")
+            .expect(302)
+            .end((err, res) => {
+              expect(err).to.not.exist;
+              // try to access /acount after logging out
+              agent.get("/account")
+                .expect(302)
+                .expect("Location", "/login")
+                .end(done);
+            });
+        });
+    });
+  });
+
+  describe("Already logged-in user features", () => {
+
+    beforeEach(done => {
+      agent.post("/login")
+        .send({
+          email: "bobby@bobby.com",
+          password: "bobbyisthebest"
+        })
+        .end(done);
     });
 
-  });
+    describe("GET /login", () => {
+      it("should redirect to /account if logged in", (done) => {
+        agent.get("/login")
+          .expect(302)
+          .expect("Location", "/account")
+          .end(done);
+      });
+    });
+
+    describe("GET /signup", () => {
+      it("should redirect if logged in", (done) => {
+        agent.get("/signup")
+          .expect(302)
+          .end(done);
+      });
+    });
+
+    describe("GET /account", () => {
+      it("should return status 200 OK", (done) => {
+        agent.get("/account")
+          .expect(200)
+          .end(done);
+      });
+    });
+
+      describe("POST /account/profile", () => {
+
+        it("should update user profile info", (done) => {
+            agent.post("/account/profile")
+             .send({
+               email: "notbobby@notbobby.com",
+               name: "notbobby"
+             })
+             .expect(302)
+             .expect("/account")
+             .end((err, res) => {
+
+               User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+                 expect(err).to.not.exist;
+                 expect(user).to.not.exist;
+
+                 User.findOne({ email: "notbobby@notbobby.com" }, (err, user) => {
+                   expect(err).to.not.exist;
+                   expect(user).to.exist;
+                   expect(user.email).to.equal("notbobby@notbobby.com");
+                   expect(user.profile.name).to.equal("notbobby");
+                   done();
+                 });
+               });
+             });
+        });
+
+      });
+
+    });
 
   describe("POST /signup", () => {
 
@@ -126,7 +207,7 @@ describe("User Controller", () => {
       User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
         expect(user).to.not.exist;
 
-        request(app).post("/signup")
+        agent.post("/signup")
           .send({
             name: "jenny",
             email: "jenny@jenny.com",
@@ -147,10 +228,25 @@ describe("User Controller", () => {
       });
     });
 
+    it("should log new user in", (done) => {
+      agent.post("/signup")
+        .send({
+          name: "jenny",
+          email: "jenny@jenny.com",
+          password: "jennyisthebest",
+          confirmPassword: "jennyisthebest"
+        })
+        .end((err, res) => {
+          agent.get("/account")
+            .expect(200)
+            .end(done);
+        });
+    });
+
     it("should not register mismatched passwords", (done) => {
       User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
         expect(user).to.not.exist;
-        request(app).post("/signup")
+        agent.post("/signup")
           .send({
             name: "jenny",
             email: "jenny@jenny.com",
@@ -169,7 +265,7 @@ describe("User Controller", () => {
     });
 
     it("should not register existing emails", (done) => {
-      request(app).post("/signup")
+      agent.post("/signup")
         .send({
           name: "bobbyCopy",
           email: "bobby@bobby.com",
@@ -191,9 +287,7 @@ describe("User Controller", () => {
   });
 
   afterEach(done => {
-    User.remove({}, (err) => {
-      done();
-    });
+    User.remove({}, done);
   });
 
   after(done => {

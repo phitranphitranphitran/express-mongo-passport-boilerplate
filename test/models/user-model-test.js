@@ -83,7 +83,7 @@ describe("User Model", () => {
     });
   });
 
-  it("won't allow users without names", (done) => {
+  it("should not allow users without names", (done) => {
     const user = new User({
       email: "test2@gmail.com",
       password: "password"
@@ -95,7 +95,7 @@ describe("User Model", () => {
     });
   });
 
-  it("can compare passwords", (done) => {
+  it("should compare passwords", (done) => {
     User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
       async.parallel({
         right: user.comparePassword.bind(user, "bobbyisthebest"),
@@ -124,7 +124,7 @@ describe("User Model", () => {
     // });
   });
 
-  it("hashes passwords", (done) => {
+  it("should hash passwords", (done) => {
     const user = new User({
       profile: { name: "MrTest" },
       email: "test@gmail.com",
@@ -136,7 +136,7 @@ describe("User Model", () => {
     });
   });
 
-  it("makes gravatars", (done) => {
+  it("should make gravatars", (done) => {
     const user = new User({
       profile: { name: "MrTest" },
       email: "test@gmail.com",
