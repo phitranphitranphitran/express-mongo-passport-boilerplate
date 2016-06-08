@@ -1,10 +1,11 @@
 "use strict";
 
-const chai = require("chai");
-const expect = chai.expect;
+const expect = require("chai").expect;
+const mongoose = require("mongoose");
 const User = require("../../app/models/user-model");
 
 describe("User Model", () => {
+
   it("should create a new user", (done) => {
     const user = new User({
       profile: { name: "MrTest" },
@@ -60,6 +61,17 @@ describe("User Model", () => {
       done();
     });
   });
+
+  after(done => {
+    // need to clear models and schemas because mocha --watch causes new schemas
+    // to be created each reload, throwing an OverwriteModelError
+    // https://github.com/Automattic/mongoose/issues/1251
+    mongoose.models = {};
+    mongoose.modelSchemas = {};
+    mongoose.disconnect();
+    done();
+  });
+
   // compare password works
   // hashes Passwords
   // makes gravatars
