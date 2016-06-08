@@ -30,9 +30,7 @@ describe("User Model", () => {
         password: "tommyisthebest"
       })
     ];
-    // users.forEach(user => user.save());
-    // done();
-    // const tasks = users.map(user => () => user.save());
+    // call done after all users are saved to db
     async.parallel(users.map(user => user.save), done);
   });
 
@@ -97,6 +95,78 @@ describe("User Model", () => {
     });
   });
 
+  it("can compare passwords", (done) => {
+    User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+      async.parallel({
+        right: user.comparePassword.bind(user, "bobbyisthebest"),
+        wrong: user.comparePassword.bind(user, "12345")
+      }, (err, isMatches) => {
+        expect(err).to.not.be.defined;
+        expect(isMatches.right).to.be.true;
+        expect(isMatches.wrong).to.be.false;
+        done();
+      });
+    });
+
+    // // non async way
+    // User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+    //
+    //   user.comparePassword("bobbyisthebest", (err, isMatch) => {
+    //     expect(err).to.not.be.defined;
+    //     expect(isMatch).to.be.true;
+    //
+    //     user.comparePassword("12345", (err, isMatch) => {
+    //       expect(err).to.not.be.defined;
+    //       expect(isMatch).to.be.false;
+    //       done();
+    //     });
+    //   });
+    // });
+  });
+
+  it("hashes passwords", (done) => {
+    const user = new User({
+      profile: { name: "MrTest" },
+      email: "test@gmail.com",
+      password: "password"
+    });
+    user.save((err, user) => {
+      expect(user.password).to.not.equal("password");
+      done();
+    });
+  });
+
+  it("makes gravatars", (done) => {
+    const user = new User({
+      profile: { name: "MrTest" },
+      email: "test@gmail.com",
+      password: "password"
+    });
+    async.parallel({
+      existing: User.findOne.bind(User, { email: "bobby@bobby.com" }),
+      newUser: user.save
+    }, (err, users) => {
+      expect(users.existing.gravatar()).to.contain("gravatar");
+      expect(users.newUser[0].profile.picture).to.contain("gravatar");
+      done();
+    });
+
+    // // non async way
+    // User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+    //   expect(user.gravatar()).to.contain("gravatar");
+    // });
+    // const user = new User({
+    //   profile: { name: "MrTest" },
+    //   email: "test@gmail.com",
+    //   password: "password"
+    // });
+    // user.save((err, user) => {
+    //   // makes gravatars on save
+    //   expect(user.profile.picture).to.contain("gravatar");
+    //   done();
+    // });
+  });
+
   afterEach(done => {
     User.remove({}, (err) => {
       done();
@@ -112,8 +182,4 @@ describe("User Model", () => {
     mongoose.disconnect();
     done();
   });
-
-  // compare password works
-  // hashes Passwords
-  // makes gravatars
 });
