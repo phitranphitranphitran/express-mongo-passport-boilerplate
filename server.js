@@ -34,27 +34,28 @@ const production = process.env.NODE_ENV === "production";
 
 /**
  * Connect to MongoDB.
+ * If in test environment, connection needs to be managed by each test independently
  */
-const mongoUri = testing ? process.env.MONGO_TEST_URI : process.env.MONGO_URI;
-const options = testing ? undefined : {
-  server: {
-    socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 }
-  },
-  replset: {
-    socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 }
-  }
-};
-mongoose.connect(mongoUri, options);
-mongoose.connection.on("error", (err) => {
-  console.error("MongoDB connection error \n", err);
-});
-mongoose.connection.once("open", () => {
-	console.log("MongoDB connection successful "
-		+ (process.env.NODE_ENV !== "production" ? mongoUri : ""));
-});
+if (!testing) {
+  mongoose.connect(process.env.MONGO_URI, {
+    server: {
+      socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 }
+    },
+    replset: {
+      socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 }
+    }
+  });
+  mongoose.connection.on("error", (err) => {
+    console.error("MongoDB connection error \n", err);
+  });
+  mongoose.connection.once("open", () => {
+    console.log("MongoDB connection successful "
+      + (!production ? process.env.MONGO_URI : ""));
+  });
+}
 
 /**
- * Express configuration.
+ * Express configuration / middleware mounting
  */
 app.set("env", process.env.NODE_ENV || "production");
 app.set("views", path.join(__dirname, "views"));
@@ -69,7 +70,7 @@ app.use(session({
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
   store: new MongoStore({
-    url: mongoUri,
+    url: process.env.MONGO_URI,
     autoReconnect: true
   })
 }));
@@ -98,7 +99,6 @@ app.use(require("./app/routes"));
 /**
  * Error Handlers
  */
-
 // catch 404
 app.use((req, res, next) => {
   var err = new Error("Not Found");
@@ -123,9 +123,5 @@ app.use((err, req, res, next) => {
     error: err
   });
 });
-
-/**
- * Start Express server.
- */
 
 module.exports = app;

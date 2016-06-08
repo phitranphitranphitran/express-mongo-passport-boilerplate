@@ -11,10 +11,10 @@ describe("Server", () => {
 
   describe("User routes", () => {
 
-    // before(done => {
-    //   mongoose.connect(process.env.MONGO_URI);
-    //   done();
-    // });
+    before(done => {
+      mongoose.connect(process.env.MONGO_TEST_URI);
+      mongoose.connection.once("open", done);
+    });
 
     beforeEach(done => {
       const users = [

@@ -7,10 +7,10 @@ const User = require("../../app/models/user-model");
 
 describe("User Model", () => {
 
-  // before(done => {
-  //   mongoose.connect(process.env.MONGO_URI);
-  //   done();
-  // });
+  before(done => {
+    mongoose.connect(process.env.MONGO_TEST_URI);
+    mongoose.connection.once("open", done);
+  });
 
   beforeEach(done => {
     const users = [
