@@ -39,6 +39,7 @@
     "passport-twitter": "^1.0.4"
   },
   "devDependencies": {
+    "async": "^2.0.0-rc.6",
     "chai": "^3.5.0",
     "concurrently": "^2.1.0",
     "eslint": "^2.11.1",
