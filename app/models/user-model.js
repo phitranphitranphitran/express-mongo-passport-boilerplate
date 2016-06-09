@@ -25,19 +25,23 @@ const userSchema = new mongoose.Schema({
  */
 userSchema.pre("save", function (next) {
   const user = this;
-  if (!user.profile.picture) {
-    user.profile.picture = user.gravatar();
+
+  if (!user.profile.picture || user.isModified("email")) {
+    user.profile.picture = getGravatar(user.email);
   }
   // hash password via bcrypt if it was changed
-  if (!user.isModified("password")) { return next(); }
-  bcrypt.genSalt(10, (err, salt) => {
-    if (err) { return next(err); }
-    bcrypt.hash(user.password, salt, null, (err, hash) => {
+  if (!user.isModified("password")) {
+    return next();
+  } else {
+    bcrypt.genSalt(10, (err, salt) => {
       if (err) { return next(err); }
-      user.password = hash;
-      next();
+      bcrypt.hash(user.password, salt, null, (err, hash) => {
+        if (err) { return next(err); }
+        user.password = hash;
+        next();
+      });
     });
-  });
+  }
 });
 
 /**
@@ -56,16 +60,16 @@ userSchema.methods.comparePassword = function (candidatePassword, cb) {
 /**
  * Helper method for getting user's gravatar.
  */
-userSchema.methods.gravatar = function (size) {
+function getGravatar(email, size) {
   if (!size) {
     size = 200;
   }
-  if (!this.email) {
+  if (!email) {
     return `https://gravatar.com/avatar/?s=${size}&d=retro`;
   }
-  const md5 = crypto.createHash("md5").update(this.email).digest("hex");
+  const md5 = crypto.createHash("md5").update(email).digest("hex");
   return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-};
+}
 
 const User = mongoose.model("User", userSchema);
 
