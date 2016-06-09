@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
   tokens: Array,
 
   profile: {
-    name: { type: String, default: "", required: true },
+    name: { type: String, default: "", required: true, trim: true },
     picture: { type: String, default: "" }
   }
 }, { timestamps: true });

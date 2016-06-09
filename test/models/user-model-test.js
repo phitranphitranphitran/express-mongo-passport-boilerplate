@@ -146,7 +146,7 @@ describe("User Model", () => {
       existing: User.findOne.bind(User, { email: "bobby@bobby.com" }),
       newUser: user.save
     }, (err, users) => {
-      expect(users.existing.gravatar()).to.contain("gravatar");
+      expect(users.existing.profile.picture).to.contain("gravatar");
       expect(users.newUser[0].profile.picture).to.contain("gravatar");
       done();
     });
