@@ -7,96 +7,82 @@ const User = require("../../app/models/user-model");
 
 describe("User Model", () => {
 
+  let users;
+
   before(done => {
     mongoose.connect(process.env.MONGO_TEST_URI);
-    mongoose.connection.once("open", done);
-  });
-
-  beforeEach(done => {
-    const users = [
-      new User({
-        profile: { name: "johnny" },
-        email: "johnny@johnny.com",
-        password: "johnnyisthebest"
-      }),
-      new User({
-        profile: { name: "bobby" },
-        email: "bobby@bobby.com",
-        password: "bobbyisthebest"
-      }),
-      new User({
-        profile: { name: "tommy" },
-        email: "tommy@tommy.com",
-        password: "tommyisthebest"
-      })
-    ];
-    // call done after all users are saved to db
-    async.parallel(users.map(user => user.save), done);
-  });
-
-  it("should create a new user", (done) => {
-    const user = new User({
-      profile: { name: "MrTest" },
-      email: "test@gmail.com",
-      password: "password"
-    });
-    user.save((err, user) => {
-      expect(err).to.not.exist;
-      expect(user.profile.name).to.equal("MrTest");
-      expect(user.email).to.equal("test@gmail.com");
-      expect(user).to.have.property("createdAt");
-      expect(user).to.have.property("updatedAt");
-      done();
+    mongoose.connection.once("open", () => {
+      users = [
+        new User({
+          profile: { name: "johnny" },
+          email: "johnny@johnny.com",
+          password: "johnnyisthebest"
+        }),
+        new User({
+          profile: { name: "bobby" },
+          email: "bobby@bobby.com",
+          password: "bobbyisthebest"
+        }),
+        new User({
+          profile: { name: "tommy" },
+          email: "tommy@tommy.com",
+          password: "tommyisthebest"
+        })
+      ];
+      // call done after all users are saved to db
+      async.parallel(users.map(user => user.save), done);
     });
   });
 
-  it("should not create a user with duplicate email", (done) => {
-    const user = new User({
-      profile: { name: "MrCopycat" },
-      email: "bobby@bobby.com", // duplicate email
-      password: "password"
-    });
-    user.save((err) => {
-      expect(err).to.exist;
-      expect(err.code).to.equal(11000);
-      done();
-    });
-  });
+  describe("Successful creation", () => {
 
-  it("should find user by email", (done) => {
-    User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-      expect(err).to.not.exist;
-      expect(user.profile.name).to.equal("bobby");
-      expect(user.email).to.equal("bobby@bobby.com");
-      done();
-    });
-  });
+    let newUser;
 
-  it("should delete a user", (done) => {
-    User.remove({ email: "bobby@bobby.com" }, (err) => {
-      expect(err).to.not.exist;
-      // done();
-      User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-        expect(user).to.not.exist;
+    it("should create a new user", (done) => {
+      const user = new User({
+        profile: { name: "MrTest" },
+        email: "test@gmail.com",
+        password: "password"
+      });
+      user.save((err, user) => {
+        expect(err).to.not.exist;
+        expect(user.profile.name).to.equal("MrTest");
+        expect(user.email).to.equal("test@gmail.com");
+        expect(user).to.have.property("createdAt");
+        expect(user).to.have.property("updatedAt");
+        newUser = user;
         done();
       });
     });
-  });
 
-  it("should not allow users without names", (done) => {
-    const user = new User({
-      email: "test2@gmail.com",
-      password: "password"
+    it("should delete a user", (done) => {
+      newUser.remove(err => {
+        expect(err).to.not.exist;
+        // done();
+        User.findOne({ email: "test@gmail.com" }, (err, user) => {
+          expect(user).to.not.exist;
+          done();
+        });
+      });
     });
-    user.save((err, user) => {
-      expect(err).to.exist;
-      expect(user).to.not.exist;
+
+    it("should find user by email", (done) => {
+      User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+        expect(err).to.not.exist;
+        expect(user.profile.name).to.equal("bobby");
+        expect(user.email).to.equal("bobby@bobby.com");
+        done();
+      });
+    });
+
+    it("should hash passwords", (done) => {
+      const user = users[1];
+      expect(user.password).to.not.equal("bobbyisthebest");
       done();
     });
-  });
 
-  it("should compare passwords", (done) => {
-    User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
+    it("should compare passwords", (done) => {
+      const user = users[1];
       async.parallel({
         right: user.comparePassword.bind(user, "bobbyisthebest"),
         wrong: user.comparePassword.bind(user, "12345")
@@ -108,48 +94,47 @@ describe("User Model", () => {
       });
     });
 
-    // // non async way
-    // User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-    //
-    //   user.comparePassword("bobbyisthebest", (err, isMatch) => {
-    //     expect(err).to.not.exist;
-    //     expect(isMatch).to.be.true;
-    //
-    //     user.comparePassword("12345", (err, isMatch) => {
-    //       expect(err).to.not.exist;
-    //       expect(isMatch).to.be.false;
-    //       done();
-    //     });
-    //   });
-    // });
   });
 
-  it("should hash passwords", (done) => {
-    const user = new User({
-      profile: { name: "MrTest" },
-      email: "test@gmail.com",
-      password: "password"
-    });
-    user.save((err, user) => {
-      expect(user.password).to.not.equal("password");
-      done();
-    });
-  });
+  describe("Validation", () => {
 
-  afterEach(done => {
-    User.remove({}, (err) => {
-      done();
+    it("should not create a user with duplicate email", (done) => {
+      const user = new User({
+        profile: { name: "MrCopycat" },
+        email: "bobby@bobby.com", // duplicate email
+        password: "password"
+      });
+      user.save((err) => {
+        expect(err).to.exist;
+        expect(err.code).to.equal(11000);
+        done();
+      });
     });
+
+    it("should not allow users without names", (done) => {
+      const user = new User({
+        email: "test2@gmail.com",
+        password: "password"
+      });
+      user.save((err, user) => {
+        expect(err).to.exist;
+        expect(user).to.not.exist;
+        done();
+      });
+    });
+
   });
 
   after(done => {
-    // need to clear models and schemas because mocha --watch causes new schemas
-    // to be created each reload, throwing an OverwriteModelError
-    // https://github.com/Automattic/mongoose/issues/1251
-    mongoose.models = {};
-    mongoose.modelSchemas = {};
-    mongoose.disconnect();
-    done();
+    User.remove({}, (err) => {
+      // need to clear models and schemas because mocha --watch causes new schemas
+      // to be created each reload, throwing an OverwriteModelError
+      // https://github.com/Automattic/mongoose/issues/1251
+      mongoose.models = {};
+      mongoose.modelSchemas = {};
+      mongoose.disconnect();
+      done();
+    });
   });
 
 });
