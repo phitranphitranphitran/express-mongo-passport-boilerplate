@@ -14,6 +14,7 @@ const User = require("../../app/models/user-model");
 describe("User Controller", () => {
 
   let agent;
+  let users;
 
   before(done => {
     mongoose.connect(process.env.MONGO_TEST_URI);
@@ -24,7 +25,7 @@ describe("User Controller", () => {
     // superagent; resets login cookies after every test
     agent = request.agent(app);
 
-    const users = [
+    users = [
       new User({
         profile: { name: "johnny" },
         email: "johnny@johnny.com",
@@ -491,6 +492,20 @@ describe("User Controller", () => {
 
     });
 
+  });
+
+  describe("GET /users/:id", () => {
+    it("should render user profile page", (done) => {
+      const user = users[1];
+      agent.get("/users/" + user.id)
+        .expect(200)
+        .end((err, res) => {
+          expect(err).to.not.exist;
+          expect(res.text).to.contain(user.profile.name);
+          expect(res.text).to.contain(user.profile.picture);
+          done();
+        });
+    });
   });
 
   afterEach(done => {

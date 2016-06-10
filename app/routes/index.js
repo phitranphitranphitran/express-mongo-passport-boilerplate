@@ -26,4 +26,6 @@ router.use("/account", passportConfig.isAuthenticated, accountRoutes);
 // auth routes
 router.use("/auth", authRoutes);
 
+router.get("/users/:id", userController.getUserProfile);
+
 module.exports = router;

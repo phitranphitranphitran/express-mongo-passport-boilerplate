@@ -103,6 +103,18 @@ exports.postSignup = (req, res, next) => {
 };
 
 /**
+ * GET /users/:id
+ */
+exports.getUserProfile = (req, res) => {
+  User.findById(req.params.id, (err, user) => {
+    res.render("user/profile", {
+      title: user.profile.name,
+      profile: user.profile
+    });
+  });
+};
+
+/**
  * GET /account
  * Account settings
  */
