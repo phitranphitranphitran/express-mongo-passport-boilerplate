@@ -24,20 +24,15 @@ const userSchema = new mongoose.Schema({
  * Hook method before saving a user
  */
 userSchema.pre("save", function (next) {
-  const user = this;
-
-  if (!user.profile.picture || user.isModified("email")) {
-    user.profile.picture = getGravatar(user.email);
-  }
   // hash password via bcrypt if it was changed
-  if (!user.isModified("password")) {
+  if (!this.isModified("password")) {
     return next();
   } else {
     bcrypt.genSalt(10, (err, salt) => {
       if (err) { return next(err); }
-      bcrypt.hash(user.password, salt, null, (err, hash) => {
+      bcrypt.hash(this.password, salt, null, (err, hash) => {
         if (err) { return next(err); }
-        user.password = hash;
+        this.password = hash;
         next();
       });
     });
@@ -60,7 +55,7 @@ userSchema.methods.comparePassword = function (candidatePassword, cb) {
 /**
  * Helper method for getting user's gravatar.
  */
-function getGravatar(email, size) {
+userSchema.statics.getGravatar = function(email, size) {
   if (!size) {
     size = 200;
   }
@@ -69,7 +64,7 @@ function getGravatar(email, size) {
   }
   const md5 = crypto.createHash("md5").update(email).digest("hex");
   return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-}
+};
 
 const User = mongoose.model("User", userSchema);
 

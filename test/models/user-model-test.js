@@ -136,37 +136,6 @@ describe("User Model", () => {
     });
   });
 
-  it("should make gravatars", (done) => {
-    const user = new User({
-      profile: { name: "MrTest" },
-      email: "test@gmail.com",
-      password: "password"
-    });
-    async.parallel({
-      existing: User.findOne.bind(User, { email: "bobby@bobby.com" }),
-      newUser: user.save
-    }, (err, users) => {
-      expect(users.existing.profile.picture).to.contain("gravatar");
-      expect(users.newUser[0].profile.picture).to.contain("gravatar");
-      done();
-    });
-
-    // // non async way
-    // User.findOne({ email: "bobby@bobby.com" }, (err, user) => {
-    //   expect(user.gravatar()).to.contain("gravatar");
-    // });
-    // const user = new User({
-    //   profile: { name: "MrTest" },
-    //   email: "test@gmail.com",
-    //   password: "password"
-    // });
-    // user.save((err, user) => {
-    //   // makes gravatars on save
-    //   expect(user.profile.picture).to.contain("gravatar");
-    //   done();
-    // });
-  });
-
   afterEach(done => {
     User.remove({}, (err) => {
       done();

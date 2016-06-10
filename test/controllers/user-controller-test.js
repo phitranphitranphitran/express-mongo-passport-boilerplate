@@ -352,137 +352,143 @@ describe("User Controller", () => {
 
   describe("POST /signup", () => {
 
-    it("should register a new local user", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "jenny",
-          email: "jenny@jenny.com",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisthebest"
-        })
-        .end((err, res) => {
+    describe("Successful signup", () => {
+
+      beforeEach(done => {
+        agent.post("/signup")
+          .send({
+            name: "jenny",
+            email: "jenny@jenny.com",
+            password: "jennyisthebest",
+            confirmPassword: "jennyisthebest"
+          })
+          .end(done);
+      });
+
+      it("should register a new local user", (done) => {
+        User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
           expect(err).to.not.exist;
+          expect(user).to.exist;
+          expect(user.profile.name).to.equal("jenny");
+          expect(user.email).to.equal("jenny@jenny.com");
+          done();
+        });
+      });
 
-          User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+      it("should make and set picture to gravatar", (done) => {
+        User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+          expect(user.profile.picture).to.contain("gravatar");
+          done();
+        });
+      });
+
+      it("should log new user in", (done) => {
+        agent.get("/account")
+          .expect(200)
+          .end(done);
+      });
+
+    });
+
+    describe("Validation", () => {
+
+      it("should not register mismatched passwords", (done) => {
+        agent.post("/signup")
+          .send({
+            name: "jenny",
+            email: "jenny@jenny.com",
+            password: "jennyisthebest",
+            confirmPassword: "jennyisNOTthebest"
+          })
+          .expect(302)
+          .expect("Location", "/signup")
+          .end((err, res) => {
+            User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.not.exist;
+              done();
+            });
+          });
+      });
+
+      it("should not register invalid name", (done) => {
+        agent.post("/signup")
+          .send({
+            name: "@#r^&#)wt*ey(583&",
+            email: "jenny@jenny.com",
+            password: "jennyisthebest",
+            confirmPassword: "jennyisthebest"
+          })
+          .expect(302)
+          .expect("Location", "/signup")
+          .end((err, res) => {
+            User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.not.exist;
+              done();
+            });
+          });
+      });
+
+      it("should not register invalid email", (done) => {
+        agent.post("/signup")
+          .send({
+            name: "jenny",
+            email: "@#r^&#)wt*ey(583&",
+            password: "jennyisthebest",
+            confirmPassword: "jennyisthebest"
+          })
+          .expect(302)
+          .expect("Location", "/signup")
+          .end((err, res) => {
+            User.findOne({ email: "@#r^&#)wt*ey(583&" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.not.exist;
+              done();
+            });
+          });
+      });
+
+      it("should trim whitespace from name", (done) => {
+        agent.post("/signup")
+          .send({
+            name: "          jenny       ",
+            email: "jenny@jenny.com",
+            password: "jennyisthebest",
+            confirmPassword: "jennyisthebest"
+          })
+          .end((err, res) => {
             expect(err).to.not.exist;
-            expect(user).to.exist;
-            expect(user.profile.name).to.equal("jenny");
-            expect(user.email).to.equal("jenny@jenny.com");
-            done();
+
+            User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
+              expect(err).to.not.exist;
+              expect(user).to.exist;
+              expect(user.profile.name).to.equal("jenny");
+              expect(user.email).to.equal("jenny@jenny.com");
+              done();
+            });
           });
-        });
-    });
+      });
 
-    it("should log new user in", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "jenny",
-          email: "jenny@jenny.com",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisthebest"
-        })
-        .end((err, res) => {
-          agent.get("/account")
-            .expect(200)
-            .end(done);
-        });
-    });
-
-    it("should not register mismatched passwords", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "jenny",
-          email: "jenny@jenny.com",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisNOTthebest"
-        })
-        .expect(302)
-        .expect("Location", "/signup")
-        .end((err, res) => {
-          User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
-            expect(err).to.not.exist;
-            expect(user).to.not.exist;
-            done();
+      it("should not register existing emails", (done) => {
+        agent.post("/signup")
+          .send({
+            name: "bobbyCopy",
+            email: "bobby@bobby.com",
+            password: "bobbyisthebest",
+            confirmPassword: "bobbyisthebest"
+          })
+          .expect(302)
+          .expect("Location", "/signup")
+          .end((err, res) => {
+            User.find({ email: "bobby@bobby.com" }, (err, users) => {
+              expect(users.length).to.equal(1);
+              expect(users[0].profile.name).to.equal("bobby");
+              done();
+            });
           });
-        });
-    });
+      });
 
-    it("should not register invalid name", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "@#r^&#)wt*ey(583&",
-          email: "jenny@jenny.com",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisthebest"
-        })
-        .expect(302)
-        .expect("Location", "/signup")
-        .end((err, res) => {
-          User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
-            expect(err).to.not.exist;
-            expect(user).to.not.exist;
-            done();
-          });
-        });
-    });
-
-    it("should not register invalid email", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "jenny",
-          email: "@#r^&#)wt*ey(583&",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisthebest"
-        })
-        .expect(302)
-        .expect("Location", "/signup")
-        .end((err, res) => {
-          User.findOne({ email: "@#r^&#)wt*ey(583&" }, (err, user) => {
-            expect(err).to.not.exist;
-            expect(user).to.not.exist;
-            done();
-          });
-        });
-    });
-
-    it("should trim whitespace from name", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "          jenny       ",
-          email: "jenny@jenny.com",
-          password: "jennyisthebest",
-          confirmPassword: "jennyisthebest"
-        })
-        .end((err, res) => {
-          expect(err).to.not.exist;
-
-          User.findOne({ email: "jenny@jenny.com" }, (err, user) => {
-            expect(err).to.not.exist;
-            expect(user).to.exist;
-            expect(user.profile.name).to.equal("jenny");
-            expect(user.email).to.equal("jenny@jenny.com");
-            done();
-          });
-        });
-    });
-
-    it("should not register existing emails", (done) => {
-      agent.post("/signup")
-        .send({
-          name: "bobbyCopy",
-          email: "bobby@bobby.com",
-          password: "bobbyisthebest",
-          confirmPassword: "bobbyisthebest"
-        })
-        .expect(302)
-        .expect("Location", "/signup")
-        .end((err, res) => {
-          User.find({ email: "bobby@bobby.com" }, (err, users) => {
-            expect(users.length).to.equal(1);
-            expect(users[0].profile.name).to.equal("bobby");
-            done();
-          });
-        });
     });
 
   });

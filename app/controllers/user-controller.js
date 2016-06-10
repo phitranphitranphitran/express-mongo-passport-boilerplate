@@ -47,6 +47,7 @@ exports.postLogin = (req, res, next) => {
  */
 exports.logout = (req, res) => {
   req.logout();
+  req.flash("info", { msg: "Logged out." });
   res.redirect("/");
 };
 
@@ -79,7 +80,8 @@ exports.postSignup = (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       profile: {
-        name: req.body.name
+        name: req.body.name,
+        picture: User.getGravatar(req.body.email)
       }
     });
 
@@ -102,11 +104,11 @@ exports.postSignup = (req, res, next) => {
 
 /**
  * GET /account
- * Profile page.
+ * Account settings
  */
 exports.getAccount = (req, res) => {
-  res.render("account/profile", {
-    title: "Account Management"
+  res.render("account/settings", {
+    title: "Account Settings"
   });
 };
 
@@ -122,8 +124,14 @@ exports.postUpdateProfile = (req, res, next) => {
     }
 
     const user = req.user;
-    user.email = req.body.email || user.email;
-    user.profile.name = req.body.name || user.profile.name;
+    if (req.body.email) {
+      user.email = req.body.email;
+      user.profile.picture = User.getGravatar(user.email);
+    }
+    if (req.body.name) {
+      user.profile.name = req.body.name;
+    }
+
     user.save((err) => {
       if (err) {
         // error code 11000 thrown when email is not unique
@@ -193,7 +201,8 @@ exports.getOauthUnlink = (req, res, next) => {
   user.tokens = user.tokens.filter(token => token.kind !== provider);
   user.save((err) => {
     if (err) { return next(err); }
-    req.flash("info", { msg: `${provider} account has been unlinked.` });
+    const prettyProvider = provider.charAt(0).toUpperCase() + provider.substr(1);
+    req.flash("info", { msg: `${prettyProvider} account has been unlinked.` });
     return res.redirect("/account");
   });
 };
