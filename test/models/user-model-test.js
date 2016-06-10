@@ -7,30 +7,32 @@ const User = require("../../app/models/user-model");
 
 describe("User Model", () => {
 
-  let users;
+  let users = [
+    new User({
+      profile: { name: "johnny" },
+      email: "johnny@johnny.com",
+      password: "johnnyisthebest"
+    }),
+    new User({
+      profile: { name: "bobby" },
+      email: "bobby@bobby.com",
+      password: "bobbyisthebest"
+    }),
+    new User({
+      profile: { name: "tommy" },
+      email: "tommy@tommy.com",
+      password: "tommyisthebest"
+    })
+  ];
 
   before(done => {
     mongoose.connect(process.env.MONGO_TEST_URI);
     mongoose.connection.once("open", () => {
-      users = [
-        new User({
-          profile: { name: "johnny" },
-          email: "johnny@johnny.com",
-          password: "johnnyisthebest"
-        }),
-        new User({
-          profile: { name: "bobby" },
-          email: "bobby@bobby.com",
-          password: "bobbyisthebest"
-        }),
-        new User({
-          profile: { name: "tommy" },
-          email: "tommy@tommy.com",
-          password: "tommyisthebest"
-        })
-      ];
-      // call done after all users are saved to db
-      async.parallel(users.map(user => user.save), done);
+      // clear users cllection before tests
+      User.remove({}, (err) => {
+        // call done after all users are saved to db
+        async.parallel(users.map(user => user.save), done);
+      });
     });
   });
 
