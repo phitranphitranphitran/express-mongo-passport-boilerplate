@@ -12,37 +12,39 @@ const app = require("../../server");
 const User = require("../../app/models/user-model");
 
 let agent = request.agent(app);
-let users;
-
-function resetUsers(done) {
-  User.remove({}, (err) => {
-    users = [
-      new User({
-        profile: { name: "johnny" },
-        email: "johnny@johnny.com",
-        password: "johnnyisthebest"
-      }),
-      new User({
-        profile: { name: "bobby" },
-        email: "bobby@bobby.com",
-        password: "bobbyisthebest"
-      }),
-      new User({
-        profile: { name: "tommy" },
-        email: "tommy@tommy.com",
-        password: "tommyisthebest"
-      })
-    ];
-    // call done after all users are saved to db
-    async.parallel(users.map(user => user.save), done);
-  });
-}
 
 describe("User Controller", () => {
+
+  let users;
+
+  function resetUsers(cb) {
+    User.remove({}, (err) => {
+      users = [
+        new User({
+          profile: { name: "johnny" },
+          email: "johnny@johnny.com",
+          password: "johnnyisthebest"
+        }),
+        new User({
+          profile: { name: "bobby" },
+          email: "bobby@bobby.com",
+          password: "bobbyisthebest"
+        }),
+        new User({
+          profile: { name: "tommy" },
+          email: "tommy@tommy.com",
+          password: "tommyisthebest"
+        })
+      ];
+      // callback after all users are saved to db
+      async.parallel(users.map(user => user.save), cb);
+    });
+  }
 
   before(done => {
     mongoose.connect(process.env.MONGO_TEST_URI);
     mongoose.connection.once("open", () => {
+      // clear users cllection before tests
       resetUsers(done);
     });
   });
@@ -375,7 +377,7 @@ describe("User Controller", () => {
       });
 
       // reset changes to user after ever test
-      afterEach(resetUsers);
+      afterEach(done => resetUsers(done));
 
     });
 
