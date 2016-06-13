@@ -35,7 +35,9 @@ exports.postLogin = (req, res, next) => {
       req.logIn(user, (err) => {
         if (err) { return next(err); }
         req.flash("success", { msg: "Success! You are logged in." });
-        res.redirect(req.session.returnTo || "/");
+        const redirectTo = req.session.returnTo || "/";
+        delete req.session.returnTo;
+        return res.redirect(redirectTo);
       });
     })(req, res, next);
   });
@@ -95,7 +97,8 @@ exports.postSignup = (req, res, next) => {
         if (err) { return next(err); }
         req.logIn(user, (err) => {
           if (err) { return next(err); }
-          res.redirect("/");
+          req.flash("success", { msg: "Welcome! Account created"});
+          return res.redirect("/");
         });
       });
     });
@@ -136,7 +139,7 @@ exports.postUpdateProfile = (req, res, next) => {
     }
 
     const user = req.user;
-    if (req.body.email) {
+    if (req.body.email && req.body.email !== user.email) {
       user.email = req.body.email;
       user.profile.picture = User.getGravatar(user.email);
     }

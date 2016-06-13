@@ -18,9 +18,13 @@ Remember to make new API keys for every project!
 
 Node-inspector debugging address: http://localhost:8080/?port=5858
 
-`npm run test --watch` initially produces a MongoError E1100 (duplicate key).
-Not quite sure why, but the tests work normally after saving a .js file.
+`npm run test:watch` seems to initially throw an error, but after saving any .js file, the tests seem to work normally. Not quite sure why; to be figure out.
 
-Places to change project name from "express-mongo-passport-boilerplate":
-  README.md
-  views: home, layout, footer, header
+To send flash messages:
+
+`req.flash("success", { msg: "Something was successful!" })`
+`req.flash("errors", { msg: "Something went wrong!" })`
+
+Places to change project name from "express-mongo-passport-boilerplate":  
+- README.md  
+- views: home, layout, footer, header

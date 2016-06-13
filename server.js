@@ -109,9 +109,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  if (testing) {
-    console.error(err);
-  }
+  console.error(err);
   if (!err.hasOwnProperty("status")) {
 		err.status = 500;
   }

@@ -26,7 +26,10 @@ router.get("/twitter/callback",
   successRedirect);
 
 function successRedirect(req, res) {
-  res.redirect(req.session.returnTo || "/account");
+  req.flash("success", { msg: "Authentication successful" });
+  const redirectTo = req.session.returnTo || "/account";
+  delete req.session.returnTo;
+  return res.redirect(redirectTo);
 }
 
 module.exports = router;
