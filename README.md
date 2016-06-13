@@ -23,7 +23,7 @@ Node-inspector debugging address: http://localhost:8080/?port=5858
 To send flash messages:
 
 `req.flash("success", { msg: "Something was successful!" })`
-`req.flash("errors", { msg: "Something went wrong!" })`
+`req.flash("error", { msg: "Something went wrong!" })`
 
 Places to change project name from "express-mongo-passport-boilerplate":  
 - README.md  

@@ -23,13 +23,13 @@ exports.getLogin = (req, res) => {
 exports.postLogin = (req, res, next) => {
   validateInputs(req, (errors) => {
     if (errors) {
-      req.flash("errors", errors);
+      req.flash("error", errors);
       return res.redirect("/login");
     }
     passport.authenticate("local", (err, user, info) => {
       if (err) { return next(err); }
       if (!user) {
-        req.flash("errors", info);
+        req.flash("error", info);
         return res.redirect("/login");
       }
       req.logIn(user, (err) => {
@@ -74,7 +74,7 @@ exports.postSignup = (req, res, next) => {
   req.assert("confirmPassword", "Passwords do not match").equals(req.body.password);
   validateInputs(req, (errors) => {
     if (errors) {
-      req.flash("errors", errors);
+      req.flash("error", errors);
       return res.redirect("/signup");
     }
 
@@ -87,22 +87,24 @@ exports.postSignup = (req, res, next) => {
       }
     });
 
-    User.findOne({ email: req.body.email }, (err, existingUser) => {
-      if (existingUser) {
-        req.flash("errors", { msg: "Account with that email address already exists." });
-        return res.redirect("/signup");
+    user.save((err, user) => {
+      if (err) {
+        // error code 11000 when email is not unique
+        if (err.code === 11000) {
+          req.flash("error", { msg: "Account with that email address already exists." });
+          return res.redirect("/signup");
+        } else {
+          return next(err);
+        }
       }
-
-      user.save((err) => {
+      req.logIn(user, (err) => {
         if (err) { return next(err); }
-        req.logIn(user, (err) => {
-          if (err) { return next(err); }
-          req.flash("success", { msg: "Welcome! Account created"});
-          return res.redirect("/");
-        });
+        req.flash("success", { msg: "Welcome! Account created"});
+        return res.redirect("/");
       });
     });
   });
+
 };
 
 /**
@@ -134,7 +136,7 @@ exports.getAccount = (req, res) => {
 exports.postUpdateProfile = (req, res, next) => {
   validateInputs(req, (errors) => {
     if (errors) {
-      req.flash("errors", errors);
+      req.flash("error", errors);
       return res.redirect("/account");
     }
 
@@ -149,12 +151,13 @@ exports.postUpdateProfile = (req, res, next) => {
 
     user.save((err) => {
       if (err) {
-        // error code 11000 thrown when email is not unique
+        // error code 11000 when email is not unique
         if (err.code === 11000) {
-          req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
+          req.flash("error", { msg: "The email address you have entered is already associated with an account." });
           return res.redirect("/account");
+        } else {
+          return next(err);
         }
-        return next(err);
       }
       req.flash("success", { msg: "Profile information has been updated." });
       return res.redirect("/account");
@@ -171,7 +174,7 @@ exports.postUpdatePassword = (req, res, next) => {
   req.assert("confirmPassword", "Passwords do not match").equals(req.body.newPassword);
   const errors = req.validationErrors();
   if (errors) {
-    req.flash("errors", errors);
+    req.flash("error", errors);
     return res.redirect("/account");
   }
 
@@ -180,7 +183,7 @@ exports.postUpdatePassword = (req, res, next) => {
   user.comparePassword(req.body.currentPassword, (err, isMatch) => {
     if (err) { return next(err); }
     if (!isMatch) {
-      req.flash("errors", { msg: "Current password does not match" });
+      req.flash("error", { msg: "Current password does not match" });
       return res.redirect("/account");
     }
     user.password = req.body.newPassword;

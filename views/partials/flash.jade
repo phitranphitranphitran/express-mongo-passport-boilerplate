@@ -1,7 +1,7 @@
-if messages.errors
+if messages.error
   .alert.alert-danger.fade.in
     a.close(data-dismiss="alert", aria-label="Close") &times;
-    for error in messages.errors
+    for error in messages.error
       div= error.msg
 if messages.info
   .alert.alert-info.fade.in

@@ -67,7 +67,7 @@ passport.use(new FacebookStrategy({
       // there is already an existing account with the same facebook provider id
       // account merging not supported
       if (existingUser) {
-        req.flash("errors", { msg: "There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
         return done(err);
       }
       // link new facebook account to logged in account; update if new info
@@ -93,7 +93,7 @@ passport.use(new FacebookStrategy({
       // check if an existing account has the same email as the facebook account
       User.findOne({ email: profile._json.email }, (err, existingEmailUser) => {
         if (existingEmailUser) {
-          req.flash("errors", { msg: "There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings." });
+          req.flash("error", { msg: "There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings." });
           return done(err);
         // create and save a new user with facebook info
         } else {
@@ -124,7 +124,7 @@ passport.use(new GitHubStrategy({
   if (req.user) {
     User.findOne({ github: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash("errors", { msg: "There is already a GitHub account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "There is already a GitHub account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
@@ -150,7 +150,7 @@ passport.use(new GitHubStrategy({
       User.findOne({ email: profile._json.email }, (err, existingEmailUser) => {
         // check if github email is under another existing account
         if (existingEmailUser) {
-          req.flash("errors", { msg: "There is already an account using this email address. Sign in to that account and link it with GitHub manually from Account Settings." });
+          req.flash("error", { msg: "There is already an account using this email address. Sign in to that account and link it with GitHub manually from Account Settings." });
           return done(err);
         // create new user with github info
         } else {
@@ -180,7 +180,7 @@ passport.use(new TwitterStrategy({
   if (req.user) {
     User.findOne({ twitter: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash("errors", { msg: "There is already a Twitter account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "There is already a Twitter account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
@@ -224,7 +224,7 @@ passport.use(new GoogleStrategy({
   if (req.user) {
     User.findOne({ google: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash("errors", { msg: "There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
@@ -247,7 +247,7 @@ passport.use(new GoogleStrategy({
       }
       User.findOne({ email: profile.emails[0].value }, (err, existingEmailUser) => {
         if (existingEmailUser) {
-          req.flash("errors", { msg: "There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings." });
+          req.flash("error", { msg: "There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings." });
           return done(err);
         } else {
           const user = new User();
