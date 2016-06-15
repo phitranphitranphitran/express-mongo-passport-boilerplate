@@ -64,22 +64,25 @@ passport.use(new FacebookStrategy({
   // check if a user is already logged in
   if (req.user) {
     User.findOne({ facebook: profile.id }, (err, existingUser) => {
+      if (err) { return done(err); }
       // there is already an existing account with the same facebook provider id
       // account merging not supported
       if (existingUser) {
-        req.flash("error", { msg: "There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "That Facebook account already belongs to someone. If it is yours, sign in with that account or delete it then link it with your current account." });
         return done(err);
       }
       // link new facebook account to logged in account; update if new info
       User.findById(req.user.id, (err, user) => {
+        if (err) { return done(err); }
         user.facebook = profile.id;
         user.tokens.push({ kind: "facebook", accessToken });
         user.email = user.email || profile._json.email;
         user.profile.name = user.profile.name || profile.name.givenName + " " + profile.name.familyName;
         user.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large` || user.profile.picture;
-        user.save((err) => {
+        user.save((err, user) => {
+          if (err) { return done(err); }
           req.flash("info", { msg: "Facebook account has been linked." });
-          return done(err, user);
+          return done(null, user);
         });
       });
     });
@@ -123,19 +126,22 @@ passport.use(new GitHubStrategy({
 }, (req, accessToken, refreshToken, profile, done) => {
   if (req.user) {
     User.findOne({ github: profile.id }, (err, existingUser) => {
+      if (err) { return done(err); }
       if (existingUser) {
-        req.flash("error", { msg: "There is already a GitHub account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "That GitHub account already belongs to someone. If it is yours, sign in with that account or delete it then link it with your current account." });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
+          if (err) { return done(err); }
           user.github = profile.id;
           user.tokens.push({ kind: "github", accessToken });
           user.email = user.email || profile._json.email;
           user.profile.name = user.profile.name || profile.displayName || profile.username;
           user.profile.picture = profile._json.avatar_url || user.profile.picture;
           user.save((err) => {
+            if (err) { return done(err); }
             req.flash("info", { msg: "GitHub account has been linked." });
-            return done(err, user);
+            return done(null, user);
           });
         });
       }
@@ -148,6 +154,7 @@ passport.use(new GitHubStrategy({
       }
       // github account doesn"t exist
       User.findOne({ email: profile._json.email }, (err, existingEmailUser) => {
+        if (err) { return done(err); }
         // check if github email is under another existing account
         if (existingEmailUser) {
           req.flash("error", { msg: "There is already an account using this email address. Sign in to that account and link it with GitHub manually from Account Settings." });
@@ -180,10 +187,11 @@ passport.use(new TwitterStrategy({
   if (req.user) {
     User.findOne({ twitter: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash("error", { msg: "There is already a Twitter account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "That Twitter account already belongs to someone. If it is yours, sign in with that account or delete it then link it with your current account."  });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
+          if (err) { return done(err); }
           user.twitter = profile.id;
           user.tokens.push({ kind: "twitter", accessToken, tokenSecret });
           user.profile.name = user.profile.name || profile.displayName;
@@ -223,29 +231,34 @@ passport.use(new GoogleStrategy({
 }, (req, accessToken, refreshToken, profile, done) => {
   if (req.user) {
     User.findOne({ google: profile.id }, (err, existingUser) => {
+      if (err) { return done(err); }
       if (existingUser) {
-        req.flash("error", { msg: "There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account." });
+        req.flash("error", { msg: "That Google account already belongs to someone. If it is yours, sign in with that account or delete it then link it with your current account." });
         return done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
+          if (err) { return done(err); }
           user.google = profile.id;
           user.tokens.push({ kind: "google", accessToken });
           user.email = user.email || profile.emails[0].value;
           user.profile.name = user.profile.name || profile.displayName;
           user.profile.picture = profile._json.image.url  || user.profile.picture;
-          user.save((err) => {
+          user.save((err, user) => {
+            if (err) { return done(err); }
             req.flash("info", { msg: "Google account has been linked." });
-            return done(err, user);
+            return done(null, user);
           });
         });
       }
     });
   } else {
     User.findOne({ google: profile.id }, (err, existingUser) => {
+      if (err) { return done(err); }
       if (existingUser) {
         return done(null, existingUser);
       }
       User.findOne({ email: profile.emails[0].value }, (err, existingEmailUser) => {
+        if (err) { return done(err); }
         if (existingEmailUser) {
           req.flash("error", { msg: "There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings." });
           return done(err);
